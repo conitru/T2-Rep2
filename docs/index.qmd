@@ -27,7 +27,6 @@ execute:
   fig-height: 6 #el alto de la figura/gráfico
 ---
 
-
 ```{r}
 install_and_load <- function(package) {
   if (!require(package, character.only = TRUE)) {
@@ -398,6 +397,5 @@ tabla %>%
 -   **Falta de acceso a información individualizada:** La imposibilidad de acceder a microdatos individualizados de los votantes (por razones de confidencialidad) limita el nivel de detalle del análisis. Los datos se deben pedir por transparencia, ya que la información disponible de modo abierto en el sitio de Servel no permite individualizar a cada ciudadano/a.
 
 -   **Riesgo de sesgos o interpretaciones equivocadas:** El análisis debe realizarse desde una perspectiva imparcial, evitando sesgos políticos o interpretaciones que puedan tergiversar los resultados. (Por ejemplo, algunas prenociones que se manejan en el debate público son que los nuevos votantes son un grupo de menor nivel educacional, esto habría que mantenerlo un poco de lado y efectivamente ver si los datos respaldan o no este tipo de hipótesis)
-
 
 -   **Transparencia y reproducibilidad:** Asegurar que el estudio siga los principios de la ciencia abierta y la reproducibilidad, documentando el uso de las fuentes de datos y los métodos analíticos.
