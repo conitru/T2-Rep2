@@ -48,7 +48,15 @@ packages <- c("knitr",
             "sf",
             "dplyr",
             "haven",
-            "scales")
+            "scales",
+            "readxl",
+            "stringr",
+            "writexl",
+            "openxlsx",
+            "tidyr",
+            "readr",
+            "flextable",
+            "DT")
 
 # Apply the function to each package
 invisible(capture.output(sapply(packages, install_and_load)))
@@ -122,6 +130,28 @@ En esta fase se recopilan los datos de diversas fuentes relevantes para el estud
 
     -   Datos históricos: Elecciones anteriores (comparación con voto voluntario).
 
+```{r}
+#La bases bases de datos a utilizar pueden descargarse del siguiente link: https://drive.google.com/file/d/1cRmGrrqzyAh4h2uRuKpuNkNenis-y0ir/view?usp=drive_link
+
+#Para el correcto funcionamiento del código, guardar las bases de datos descargadas en la misma carpeta en que se encuentra el proyecto en R, con los mismos nombres con que vienen del link.
+
+#Base 1: Resultados de Votación. Origen: Servel. Dato Público.
+Base_Votacion_Gob2024 <- read_excel("2024_11_GobernadoresRegionales_Datos_Eleccion.xlsx", 
+    skip = 4)
+
+#Base 2: Datos de Participación por Ciudadano Anonimizado. Origen: Ficticio, creada con la estructura de participación de la elección de Gobernadores de 2024 (Mesa-Comuna-Región), pero con resultados aleatorizados. El proceso de creación de la base de datos aleatorizada se adjuntará como anexo al final del presente informe.
+Entidad_Ciudadano <- read_csv("Entidad Ciudadano (Base Ficticia).csv")
+
+#Base 3: Datos de Entidad Elección. Esta base fue construída por el equipo investigador como un resumen de las elecciones que potencialmente podrían considerarse para el análisis. Para efectos del presente ejercicio, solo se trabajará con datos de la elección de Gobernadores de 2024.
+Entidad_Elección <- read_excel("Base Entidad Elección.xlsx")
+
+#Base 4: Proyecciones de Población de 2024. Origen: INE. Base de datos del INE con las proyecciones de población, para usarlo como fuente para recuperar el código de la comuna.
+Proyecciones_INE <- read_excel("estimaciones-y-proyecciones-2002-2035-comunas (1).xlsx")
+
+#Base 5: Datos de Pobreza Multidimensional de las Encuesta CASEN 2022. Fuente: Encuesta CASEN 2022. Se utilizará para obtener un dato de porcentaje de pobreza para cada comuna.
+CASEN_2022 <- read_excel("Estimaciones_Indice_Pobreza_Multidimensional_Comunas_2022.xlsx")
+```
+
 **Transform**
 
 En esta fase, los datos extraídos se limpian, integran y procesan para generar datasets coherentes y listos para el análisis.
@@ -157,6 +187,358 @@ En esta fase, los datos extraídos se limpian, integran y procesan para generar 
     -   Tasa de participación.
 
     -   Comparación de participación regional.
+
+```{r}
+#Parte 1: Base de Entidad_Votación
+
+##Paso 1: Importación (Ya realizado en chunk previo)
+##Paso 2: Creación de una llave primaria para cada caso de resultado de votación dentro de la base "Votación", ya que la base de Sevel no viene con una llave primeria creada. Se utilizará un número correlativo desde el 1 al 359162, cubriendo el total de casos de la base de datos. También se crea una llave primaria para la elección (ID_Elección). En este caso, para el ejercicio práctico para el curso de Reproducibilidad, se procederá a trabajar solo con proceso electoral, las elecciones de gobernadores de 2024 (Primera vuelta)
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024 %>%
+  mutate(ID_Votación = row_number())
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>%
+  mutate(ID_Elección = "Gob_2024")
+
+##Paso 3: Recodificación de los votos en tres categorías "Nulos", "Blancos" y "Válidos"
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>% 
+  mutate(Voto_Recodificado=case_when(
+    Nombres=="VOTOS NULOS"~"Nulos",
+    Nombres=="VOTOS EN BLANCO"~"Blancos",
+    TRUE~"Válidos"
+  ))
+
+##Paso 4: Importación de códigos para la variable Comuna (Código del INE). Actualmente la base de SERVEL viene solo con el nombre de la comuna, por lo que se utilizará una fuente oficial (Proyecciones de Población del INE), para recuperar el código de la comuna, y usarlo como llave primaria para identificar la entidad "Comuna".
+
+###Paso 4.1: Importación de la base de datos del INE con las proyecciones de población, para usarlo como fuente para recuperar el código de la comuna (Ya realizado en chunk previo)
+
+###Paso 4.2: Se seleccionan y agrupan en datos únicos solo las variables de interés de la Base "Proyecciones_INE", que correspondería al nombre y código de la comuna como caso único (sin duplicados)
+Código_Comunas_INE <- Proyecciones_INE %>% 
+  select(Comuna, `Nombre Comuna`) %>% 
+  distinct()
+
+rm(Proyecciones_INE) #Se remueve este base, ya que su propósito se cumplió y no volverá a ser utilizada
+
+###Paso 4.3: Se modifica la variable "Comuna" de la base "Base_Votacion_Gob2024_2", para que quede son con mayúscula en su primera letra.
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>%
+  mutate(Comuna = str_to_title(Comuna))
+
+###Paso 4.4: Se cambia el nombre de las variables de la base "Código_Comunas_INE", para factibilizar la comparación con antijoin.
+
+Código_Comunas_INE <- Código_Comunas_INE %>%
+  rename(ID_Comuna = Comuna,    
+    Comuna = `Nombre Comuna`)
+
+###Paso 4.5: Se crea un nuevo objeto con los nombres de comuna de la "Base_Votacion_Gob2024_2"
+Nombres_Comunas_SERVEL <- Base_Votacion_Gob2024_2 %>% 
+  select(Comuna) %>% 
+  distinct()
+
+###Paso 4.6: Se utiliza antijoin para identificar los casos por comuna que no tienen el mismo texto (tíldes, entre otros).
+Diferencias_Comunas1 <- Nombres_Comunas_SERVEL %>%
+  anti_join(Código_Comunas_INE, by = "Comuna")
+
+Diferencias_Comunas2 <- Código_Comunas_INE %>%
+  anti_join(Nombres_Comunas_SERVEL, by = "Comuna")
+
+#Se identifican 88 comunas con nombres diferentes
+
+###Paso 4.7: Recodificación de las comunas de la base "Base_Votacion_Gob2024_2", para que sus nombres coincidan con la base de Proyecciones del INE.
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>% 
+  mutate(Comuna=case_when(
+    Comuna=='Alhue'~'Alhué',
+    Comuna=='Alto Biobio'~'Alto Biobío',
+    Comuna=='Alto Del Carmen'~'Alto del Carmen',
+    Comuna=='Antartica'~'Antártica',
+    Comuna=='Aysen'~'Aysén',
+    Comuna=='Cabo De Hornos(Ex-Navarino)'~'Cabo de Hornos',
+    Comuna=='Calera De Tango'~'Calera de Tango',
+    Comuna=='Chaiten'~'Chaitén',
+    Comuna=='Chepica'~'Chépica',
+    Comuna=='Chillan'~'Chillán',
+    Comuna=='Chillan Viejo'~'Chillán Viejo',
+    Comuna=='Cochamo'~'Cochamó',
+    Comuna=='Colbun'~'Colbún',
+    Comuna=='Combarbala'~'Combarbalá',
+    Comuna=='Concepcion'~'Concepción',
+    Comuna=='Conchali'~'Conchalí',
+    Comuna=='Concon'~'Concón',
+    Comuna=='Constitucion'~'Constitución',
+    Comuna=='Copiapo'~'Copiapó',
+    Comuna=='Curacautin'~'Curacautín',
+    Comuna=='Curacavi'~'Curacaví',
+    Comuna=='Curaco De Velez'~'Curaco de Vélez',
+    Comuna=='Curico'~'Curicó',
+    Comuna=='Diego De Almagro'~'Diego de Almagro',
+    Comuna=='Estacion Central'~'Estación Central',
+    Comuna=='Futaleufu'~'Futaleufú',
+    Comuna=='Hualaihue'~'Hualaihué',
+    Comuna=='Hualañe'~'Hualañé',
+    Comuna=='Hualpen'~'Hualpén',
+    Comuna=='Isla De Maipo'~'Isla de Maipo',
+    Comuna=='Isla De Pascua'~'Isla de Pascua',
+    Comuna=='Juan Fernandez'~'Juan Fernández',
+    Comuna=='La Union'~'La Unión',
+    Comuna=='Licanten'~'Licantén',
+    Comuna=='Llay-Llay'~'Llaillay',
+    Comuna=='Longavi'~'Longaví',
+    Comuna=='Los Alamos'~'Los Álamos',
+    Comuna=='Machali'~'Machalí',
+    Comuna=='Mafil'~'Máfil',
+    Comuna=='Maipu'~'Maipú',
+    Comuna=='Marchigue'~'Marchihue',
+    Comuna=='Maria Elena'~'María Elena',
+    Comuna=='Maria Pinto'~'María Pinto',
+    Comuna=='Maullin'~'Maullín',
+    Comuna=='Mulchen'~'Mulchén',
+    Comuna=='Ñiquen'~'Ñiquén',
+    Comuna=="O'higgins"~"O'Higgins",
+    Comuna=='Ollague'~'Ollagüe',
+    Comuna=='Olmue'~'Olmué',
+    Comuna=='Paihuano'~'Paiguano',
+    Comuna=='Peñalolen'~'Peñalolén',
+    Comuna=='Puchuncavi'~'Puchuncaví',
+    Comuna=='Pucon'~'Pucón',
+    Comuna=='Puqueldon'~'Puqueldón',
+    Comuna=='Puren'~'Purén',
+    Comuna=='Queilen'~'Queilén',
+    Comuna=='Quellon'~'Quellón',
+    Comuna=='Quillon'~'Quillón',
+    Comuna=='Quilpue'~'Quilpué',
+    Comuna=='Quinta De Tilcoco'~'Quinta de Tilcoco',
+    Comuna=='Ranquil'~'Ránquil',
+    Comuna=='Requinoa'~'Requínoa',
+    Comuna=='Rio Bueno'~'Río Bueno',
+    Comuna=='Rio Claro'~'Río Claro',
+    Comuna=='Rio Hurtado'~'Río Hurtado',
+    Comuna=='Rio Ibañez'~'Río Ibáñez',
+    Comuna=='Rio Negro'~'Río Negro',
+    Comuna=='Rio Verde'~'Río Verde',
+    Comuna=='San Fabian'~'San Fabián',
+    Comuna=='San Joaquin'~'San Joaquín',
+    Comuna=='San Jose De Maipo'~'San José de Maipo',
+    Comuna=='San Juan De La Costa'~'San Juan de la Costa',
+    Comuna=='San Nicolas'~'San Nicolás',
+    Comuna=='San Pedro De Atacama'~'San Pedro de Atacama',
+    Comuna=='San Pedro De La Paz'~'San Pedro de la Paz',
+    Comuna=='San Ramon'~'San Ramón',
+    Comuna=='Santa Barbara'~'Santa Bárbara',
+    Comuna=='Santa Maria'~'Santa María',
+    Comuna=='Tirua'~'Tirúa',
+    Comuna=='Tolten'~'Toltén',
+    Comuna=='Tome'~'Tomé',
+    Comuna=='Torres Del Paine'~'Torres del Paine',
+    Comuna=='Traiguen'~'Traiguén',
+    Comuna=='Trehuaco'~'Treguaco',
+    Comuna=='Valparaiso'~'Valparaíso',
+    Comuna=='Vichuquen'~'Vichuquén',
+    Comuna=='Vilcun'~'Vilcún',
+    Comuna=='Viña Del Mar'~'Viña del Mar',
+    TRUE~Comuna)
+    )
+
+###Paso 4.8: Se repite el antijoin, para verificar si los nombres quedaron iguales.
+Nombres_Comunas_SERVEL2 <- Base_Votacion_Gob2024_2 %>% 
+  select(Comuna) %>% 
+  distinct()
+
+Diferencias_Comunas3 <- Nombres_Comunas_SERVEL2 %>%
+  anti_join(Código_Comunas_INE, by = "Comuna")
+
+Diferencias_Comunas4 <- Código_Comunas_INE %>%
+  anti_join(Nombres_Comunas_SERVEL2, by = "Comuna")
+
+#Se verifica que hay cero casos con nombres diferentes. Se procede a eliminar los objetos que no seguirán utilizando del environment.
+
+rm(Nombres_Comunas_SERVEL, Nombres_Comunas_SERVEL2, Diferencias_Comunas1, Diferencias_Comunas2, Diferencias_Comunas3, Diferencias_Comunas4)
+
+###Paso 4.9: Se procede a pegar el código de comuna en la base "Base_Votacion_Gob2024_2"
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>%
+  left_join(Código_Comunas_INE, by = "Comuna")
+
+##Paso 5: Creación de una llave primaria "Mesa", con un código único para cada mesa por comuna. Justificción: La base de datos de SERVEL publicada en línea no trae el código único de la mesa, por lo que se procederá a crear un código único combinando la comuna con el número de mesa.
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>%
+  mutate(ID_Mesa = str_c(ID_Comuna, Mesa, sep = "_"))
+
+##Paso 6: Verificación del código Región, para revisar que sus códigos sean los mismos del INE, y cambiar los nombres para que estén completos y con la nomenclatura INE.
+
+Nombres_Regiones_Servel <- Base_Votacion_Gob2024_2 %>% 
+  select(`Nro Región`,Región) %>% 
+  distinct(`Nro Región`,Región)
+
+#Se verifica que los números asociados a cada región son los mismos en ambas bases. Por lo que solo se procede a modificar el nombre de la variable Nro Región.
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>%
+  rename(ID_Región = `Nro Región`)
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>% 
+  mutate(Región=case_when(
+    ID_Región==1~'Tarapacá',
+    ID_Región==2~'Antofagasta',
+    ID_Región==3~'Atacama',
+    ID_Región==4~'Coquimbo',
+    ID_Región==5~'Valparaíso',
+    ID_Región==6~"Libertador General Bernardo O'Higgins",
+    ID_Región==7~'Maule',
+    ID_Región==8~'Biobío',
+    ID_Región==9~'La Araucanía',
+    ID_Región==10~'Los Lagos',
+    ID_Región==11~'Aysén del General Carlos Ibáñez del Campo',
+    ID_Región==12~'Magallanes y de la Antártica Chilena',
+    ID_Región==13~'Metropolitana de Santiago',
+    ID_Región==14~'Los Ríos',
+    ID_Región==15~'Arica y Parinacota',
+    ID_Región==16~'Ñuble'))
+
+#Se eliminan los objetos que ya no se utilizarán
+rm(Nombres_Regiones_Servel, Código_Comunas_INE)
+
+##Paso 7: Se cambian los nombres de las varibles "Votos" y "voto_recodificado". Además se crea variable "Tipo_Voto" uniendo los nombres y apellidos de los candidatos cuando estan disponibles.
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>%
+  mutate(Tipo_Voto = case_when(
+    !is.na(`Primer apellido`) & !is.na(`Segundo apellido`) ~ paste(Nombres, `Primer apellido`, `Segundo apellido`),
+    TRUE ~ Nombres))
+
+Base_Votacion_Gob2024_2 <- Base_Votacion_Gob2024_2 %>%
+  rename(Tipo_Voto2 = Voto_Recodificado,
+         Cantidad_Votos=Votos)
+
+##Paso 8: Ordenamiento de la base Base_Votacion_Gob2024_2 para que quede como la base normalizada de modelo lógico para la entidad 
+
+Entidad_Votación <- Base_Votacion_Gob2024_2 %>% 
+  select(ID_Votación, ID_Elección, ID_Mesa, ID_Comuna, Comuna, ID_Región, Región, Tipo_Voto, Tipo_Voto2, Cantidad_Votos)
+
+######Nota técnica: A partir de este punto, se procedió con el código para crear la base "Entidad Ciudadano". Esta base corresponde a la base de más de 13 millones de votantes de la elección de gobernadores, cada uno asignado a su respectiva mesa, comuna y región. Manteniendo también la estructura de votación en términos de los porcentajes de votos validos, nulos y blancos, los cuales fueron asignados aleatoriamente a la base ficticia. Para revisar el detalle de la construcción de la base ficticia, revisar los anexos de este documento.
+
+#Parte 2: Base de Entidad_Ciudadano: Se carga directamente de la base ficticia creada. Este proceso de importación ya se realizó en un chunk previo.
+
+#Parte 3: Base de Entidad_Mesa (Se contruye a partir de la base de Entidad_Ciudadano).
+
+##Paso 1: Calcular la cantidad de Tipos de Votante para cada mesa. 
+Tipología_Mesa <- Entidad_Ciudadano %>%
+  group_by(ID_Mesa, Tipo_Votante) %>%          
+  summarise(Count = n(), .groups = "drop") %>% 
+  pivot_wider(names_from = Tipo_Votante,
+              values_from = Count,
+              values_fill = 0)  
+
+#Calcular el porcentaje de nuevos votantes para cada mesa
+Tipología_Mesa <- Tipología_Mesa %>% 
+  mutate(Total_Votantes=(`Nuevo Votante`+`Votante Esporádico`+`Votante Permanente`),
+         Porc_Nuevos_Votantes=((`Nuevo Votante`/Total_Votantes)*100),
+         Porc_Votantes_Permanentes=((`Votante Permanente`/Total_Votantes)*100),
+         Porc_Votantes_Esporádicos=((`Votante Esporádico`/Total_Votantes)*100))
+
+#Calculo de tipo de mesa.
+Tipología_Mesa <- Tipología_Mesa %>%
+  mutate(Tipo_Mesa = ifelse(
+      Porc_Nuevos_Votantes > Porc_Votantes_Permanentes & 
+      Porc_Nuevos_Votantes > Porc_Votantes_Esporádicos,
+      "Mesa de Nuevos Votantes",
+      "Otro tipo de mesa"))
+
+#Se debe elegir un criterio para la clasificación de las mesas categorizadas como "Mesas de Nuevos Votantes". En este punto serán fundamentales los datos reales para poder tomar la decisión, pero dado que en este caso se están utilizando datos ficticios, se tomará como referencia el 30% de mesas con mayor porcentaje de nuevos votantes.
+
+umbral <- quantile(Tipología_Mesa$Porc_Nuevos_Votantes, 0.7)
+
+#El umbral para el corte entre mesas de nuevos votantes es 42.4%.
+
+Tipología_Mesa <- Tipología_Mesa %>%
+  mutate(Tipo_Mesa = ifelse(Porc_Nuevos_Votantes >= umbral, 
+                       "Mesa de Nuevos Votantes", 
+                       "Otro tipo de mesa"))
+
+##Paso 2: Creación de Entidad_Mesa
+Entidad_Mesa <- Entidad_Ciudadano %>%
+  group_by(ID_Mesa) %>%
+  summarise(
+    ID_Comuna = first(ID_Comuna),
+    Comuna = first(Comuna),
+    ID_Región = first(ID_Región),
+    Región = first(Región),
+    Total_Votantes = n(), # Cuenta total de filas por ID_Mesa
+    Total_Blancos = sum(Tipo_Voto2 == "Blancos", na.rm = TRUE), # Total de votos blancos
+    Total_Nulos = sum(Tipo_Voto2 == "Nulos", na.rm = TRUE),     # Total de votos nulos
+    Total_Validos = sum(Tipo_Voto2 == "Válidos", na.rm = TRUE)  # Total de votos válidos
+  )
+
+#Se van a recuperar algunos datos de la base original para agregar a la base de Entidad Mesa, en específico el local de votación y el número de mesa.
+#Para ello, primero se crea un data frame con esas variables a recuperar y la llave para conectar las bases.
+Local_Mesa <- Base_Votacion_Gob2024_2 %>% 
+  select(ID_Mesa, Mesa, Local)
+
+Local_Mesa2 <- Local_Mesa %>%
+  group_by(ID_Mesa) %>%
+  summarise(
+    Mesa = first(Mesa),
+    Local = first(Local))
+
+Entidad_Mesa <- Entidad_Mesa %>% 
+  left_join(Local_Mesa2, by="ID_Mesa")
+
+Entidad_Mesa <- Entidad_Mesa %>%
+  rename(Número_Mesa = Mesa,    
+    Local_Votación = Local)
+
+#Finalmente, se agrega la variable nueva "Tipo_Mesa" creada previamente.
+Tipología_Mesa2 <- Tipología_Mesa %>% 
+  select(ID_Mesa, Tipo_Mesa)
+
+Entidad_Mesa <- Entidad_Mesa %>% 
+  left_join(Tipología_Mesa2, by="ID_Mesa")
+
+#Se agrega variable ID_Elección, en este caso solo corresponde a una elección para el ejercicio.
+Entidad_Mesa <- Entidad_Mesa %>%
+  mutate(ID_Elección = "Gob_2024")
+
+#Se ordenan las variables
+Entidad_Mesa <- Entidad_Mesa %>% 
+  select(ID_Mesa, Número_Mesa, Local_Votación, ID_Elección, ID_Comuna, Comuna, ID_Región, Región, Total_Validos,Total_Blancos, Total_Nulos, Total_Votantes)
+
+#Se remueven los objetos que ya no se usarán.
+rm(Local_Mesa,Local_Mesa2, Tipología_Mesa, Tipología_Mesa2)
+
+#Parte 4: Base de Entidad_Comuna (Se contruye a partir de la base de Entidad_Ciudadano) y los datos de pobreza multidimensional CASEN 2022.
+
+##Paso 1: Importación base de datos CASEN 2022. Este paso de importación ya fue realizado en un chunk anterior.
+#Se cambian los nomrbes de algunas variables de la base.
+CASEN_2022_2 <- CASEN_2022 %>% 
+  select(Código, `Nombre comuna`, `Porcentaje de personas en situación de pobreza multidimensional 2022`) %>% 
+  rename(ID_Comuna = Código,
+         Comuna=`Nombre comuna`,
+         Porc_Pob_Mult=`Porcentaje de personas en situación de pobreza multidimensional 2022`)
+
+##Paso 2: Se crea Base Entidad_Comuna, a partir de la base de datos de Entidad_Ciudadano
+
+Entidad_Comuna <- Entidad_Ciudadano %>% 
+    group_by(ID_Comuna) %>%
+  summarise(
+    Comuna = first(Comuna),
+    ID_Región = first(ID_Región),
+    Región = first(Región),
+    Total_Votantes = n(),
+    Total_Nuevos_Votantes = sum(Tipo_Votante == "Nuevo Votante", na.rm = TRUE))
+
+Entidad_Comuna <- Entidad_Comuna %>% 
+  mutate(Porc_Nuevos_Votantes=((Total_Nuevos_Votantes/Total_Votantes)*100))
+
+##Paso 3: Se pega el dato de pobreza CASEN en la base de Entidad_Comuna
+Entidad_Comuna <- Entidad_Comuna %>% 
+  left_join(CASEN_2022_2, by="ID_Comuna")
+
+Entidad_Comuna <- Entidad_Comuna %>% 
+  select(ID_Comuna, Comuna.x, ID_Región, Región, Porc_Pob_Mult, Total_Votantes, Total_Nuevos_Votantes, Porc_Nuevos_Votantes) %>% 
+  rename(Comuna=Comuna.x,
+         Porcentaje_Pobreza_CASEN=Porc_Pob_Mult)
+
+#Se eliminan los objetos que ya no se seguirán utilizandos.
+rm(CASEN_2022,CASEN_2022_2, Base_Votacion_Gob2024, Base_Votacion_Gob2024_2)
+```
+
 
 **Load**
 
@@ -243,6 +625,95 @@ grViz("
 ```
 
 ## **Modelo lógico**
+
+### **Entidad Elección**
+```{r}
+#| label: tbl-tabla1
+#| tbl-cap: "Tabla de Base Entidad Elección"
+
+# Crear tabla interactiva con variables seleccionadas
+datatable(
+  Entidad_Elección %>% select(ID_Elección, Nombre_Elección, Tipo_Elección, Tipo_Votación, Fecha),
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    searchHighlight = TRUE
+  )
+)
+
+```
+
+### **Entidad Ciudadano**
+Nota técnica: Solo se presentan 200 casos de la base de datos de la entidad ciudadano, ya que dicha base tiene una cantidad de casos de 13.122.261 casos.
+```{r}
+Entidad_Ciudadano_200 <- head(Entidad_Ciudadano, 200)
+
+#| label: tbl-tabla2
+#| tbl-cap: "Tabla de Base Entidad Ciudadano"
+
+# Crear tabla interactiva con variables seleccionadas
+datatable(
+  Entidad_Ciudadano_200 %>% select(ID_Ciudadano, ID_Elección, ID_Mesa, ID_Comuna, Comuna, Comuna, ID_Región, Región, Sexo, Tramo_Etario, Nacionalidad, Afiliación_PP, Tipo_Votante, Tipo_Voto2),
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    searchHighlight = TRUE
+  )
+)
+```
+
+### **Entidad Mesa**
+Nota técnica: Solo se presentan 200 casos de la base de datos de la entidad mesa, ya que dicha base tiene una cantidad de casos de 40.014 casos.
+```{r}
+Entidad_Mesa_200 <- head(Entidad_Mesa, 200)
+
+#| label: tbl-tabla3
+#| tbl-cap: "Tabla de Base Entidad Mesa"
+
+# Crear tabla interactiva con variables seleccionadas
+datatable(
+  Entidad_Mesa_200 %>% select(ID_Mesa, Número_Mesa, Local_Votación, ID_Elección, ID_Comuna, Comuna, ID_Región, Región, Total_Validos, Total_Blancos, Total_Nulos, Total_Votantes),
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    searchHighlight = TRUE
+  )
+)
+```
+### **Entidad Comuna**
+```{r}
+#| label: tbl-tabla4
+#| tbl-cap: "Tabla de Base Entidad Comuna"
+
+# Crear tabla interactiva con variables seleccionadas
+datatable(
+  Entidad_Comuna %>% select(ID_Comuna, Comuna, ID_Región, Región, Porcentaje_Pobreza_CASEN, Total_Votantes, Total_Nuevos_Votantes, Porc_Nuevos_Votantes),
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    searchHighlight = TRUE
+  )
+)
+```
+
+### **Entidad Votación**
+Nota técnica: Solo se presentan 200 casos de la base de datos de la entidad votación, ya que dicha base tiene una cantidad de casos de 359.162 casos.
+```{r}
+Entidad_Votación_200 <- head(Entidad_Votación, 200)
+
+#| label: tbl-tabla5
+#| tbl-cap: "Tabla de Base Entidad Votación"
+
+# Crear tabla interactiva con variables seleccionadas
+datatable(
+  Entidad_Votación_200 %>% select(ID_Votación, ID_Elección, ID_Mesa, ID_Comuna, Comuna, ID_Región, Región, Tipo_Voto, Tipo_Voto2, Cantidad_Votos),
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    searchHighlight = TRUE
+  )
+)
+```
 
 ## **Métricas y dimensiones del análisis de datos**
 
