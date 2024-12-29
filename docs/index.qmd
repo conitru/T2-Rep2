@@ -60,7 +60,6 @@ packages <- c("knitr",
             "DT",
             "ggplot2",
             "DiagrammeR",
-            "chilemapas",
             "leaflet",
             "geojsonio")
 
@@ -886,11 +885,9 @@ Comunas_Mapa <- comunas %>%
 
 Comunas_Mapa <- Comunas_Mapa %>% filter(codregion != 0) # Eliminamos la región 0 ya que no podremos georeferenciarla, es básicamente un NA (En este caso la comuna de Antartica queda dentro de esta clasificación según los polígonos oficiales descargados)
 
-Comunas_Mapa <- st_as_sf(Comunas_Mapa, coords = c("lon", "lat"), crs = 4326)
-
 Comunas_Mapa_wgs84 <- st_transform(Comunas_Mapa, crs = 4326) # Transformamos el mapa a WGS84. Es como "traducir" las coordenadas de un sistema a otro para que todos los elementos del mapa web (base map, polígonos, marcadores, etc.) "hablen el mismo idioma" geográfico.
 
-rm(no_coincidentes,no_coincidentes2)
+rm(no_coincidentes,no_coincidentes2, comunas, Comunas_Mapa)
 ```
 
 ```{r}
@@ -907,9 +904,7 @@ leaflet(data = Comunas_Mapa_wgs84) %>%
     popup = ~paste("Comuna:", Comuna.y,
                    "<br>Región:", Región,
                    "<br>% de Pobreza Multidimensional CASEN 2022:", round((Porcentaje_Pobreza_CASEN*100),2), "%",
-                   "<br>Total Votantes:", Total_Votantes,
-                   "<br>Total Nuevos Votantes:", Total_Nuevos_Votantes,
-                   "<br>% de Nuevos Votantes:", round(Porc_Nuevos_Votantes, 2),"%")
+                  "<br>% de Nuevos Votantes:", round(Porc_Nuevos_Votantes, 2),"%")
   ) %>%
   addLegend(
     pal = colorNumeric("plasma", Comunas_Mapa_wgs84$Porc_Nuevos_Votantes),  # Paleta de colores
