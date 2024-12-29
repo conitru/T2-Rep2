@@ -140,26 +140,85 @@ En esta fase se recopilan los datos de diversas fuentes relevantes para el estud
 
     -   Datos INE: Proyecciones de población año 2024.
 
-```{r}
-#La bases bases de datos a utilizar pueden descargarse del siguiente link: https://drive.google.com/file/d/1cRmGrrqzyAh4h2uRuKpuNkNenis-y0ir/view?usp=drive_link
+```{r, results = 'hide'}
+#Las bases de datos se encuentran en enlaces raw de Github para asegurar su reproducibilidad. De todos modos, también se pueden descargar del siguiente link: https://drive.google.com/file/d/1cRmGrrqzyAh4h2uRuKpuNkNenis-y0ir/view?usp=drive_link
 
-#Para el correcto funcionamiento del código, guardar las bases de datos descargadas en la carpeta "data" que se encuentra dentro de la carpeta "docs" del Github, con los mismos nombres con que vienen del link.
+#Para el correcto funcionamiento del código, guardar las bases de datos descargadas en una carpeta llamada "data"  dentro de la carpeta "docs" del Github, con los mismos nombres con que vienen del link.
 
 #Base 1: Resultados de Votación. Origen: Servel. Dato Público.
-Base_Votacion_Gob2024 <- read_excel("data/2024_11_GobernadoresRegionales_Datos_Eleccion.xlsx", 
-    skip = 4)
+url1 <- "https://raw.githubusercontent.com/conitru/T2-Rep2/ad36ae77d5def450fbe08e277960efb5b31afbce/docs/data2/2024_11_GobernadoresRegionales_Datos_Eleccion.xlsx"
 
-#Base 2: Datos de Participación por Ciudadano Anonimizado. Origen: Ficticio, creada con la estructura de participación de la elección de Gobernadores de 2024 (Mesa-Comuna-Región), pero con resultados aleatorizados. El proceso de creación de la base de datos aleatorizada se adjuntará como anexo al final del presente informe.
-Entidad_Ciudadano <- read_csv("data/Entidad Ciudadano (Base Ficticia).csv")
+# Descargar el archivo con httr
+Temporal1 <- GET(url1)
 
-#Base 3: Datos de Entidad Elección. Esta base fue construída por el equipo investigador como un resumen de las elecciones que potencialmente podrían considerarse para el análisis. Para efectos del presente ejercicio, solo se trabajará con datos de la elección de Gobernadores de 2024.
-Entidad_Elección <- read_excel("data/Base Entidad Elección.xlsx")
+# Guardar el archivo descargado en un archivo temporal
+temp_file1 <- tempfile(fileext = ".xlsx")
+writeBin(content(Temporal1, "raw"), temp_file1)
+
+Base_Votacion_Gob2024 <- read_excel(temp_file1, skip = 4)
+
+######Base 2: Datos de Participación por Ciudadano Anonimizado. Origen: Ficticio, creada con la estructura de participación de la elección de Gobernadores de 2024 (Mesa-Comuna-Región), pero con resultados aleatorizados. El proceso de creación de la base de datos aleatorizada se adjuntará como anexo al final del presente informe.
+
+url_zip <- "https://raw.githubusercontent.com/conitru/T2-Rep2/ad36ae77d5def450fbe08e277960efb5b31afbce/docs/data2/Entidad%20Ciudadano%20(Base%20Ficticia).zip"
+
+# Guardar el archivo .zip en un archivo temporal
+Temporal2 <- GET(url_zip)
+temp_zip <- tempfile(fileext = ".zip")
+writeBin(content(Temporal2, "raw"), temp_zip)
+
+# Descomprimir el archivo .zip en una carpeta temporal
+temp_dir <- tempfile()
+  unzip(temp_zip, exdir = temp_dir)
+
+# Ver los archivos descomprimidos en la carpeta temporal
+files <- list.files(temp_dir)
+print(files)
+
+# Importar el primer archivo CSV encontrado
+file_to_import <- file.path(temp_dir, files[1])  # Asumiendo que el archivo CSV es el primero
+Entidad_Ciudadano <- read.csv(file_to_import)  # Leer el archivo CSV
+
+######Base 3: Datos de Entidad Elección. Esta base fue construída por el equipo investigador como un resumen de las elecciones que potencialmente podrían considerarse para el análisis. Para efectos del presente ejercicio, solo se trabajará con datos de la elección de Gobernadores de 2024.
+
+url2 <- "https://raw.githubusercontent.com/conitru/T2-Rep2/ad36ae77d5def450fbe08e277960efb5b31afbce/docs/data2/Base%20Entidad%20Elecci%C3%B3n.xlsx"
+
+# Descargar el archivo con httr
+Temporal2 <- GET(url2)
+
+# Guardar el archivo descargado en un archivo temporal
+temp_file2 <- tempfile(fileext = ".xlsx")
+writeBin(content(Temporal2, "raw"), temp_file2)
+
+Entidad_Elección <- read_excel(temp_file2)
+
 
 #Base 4: Proyecciones de Población de 2024. Origen: INE. Base de datos del INE con las proyecciones de población, para usarlo como fuente para recuperar el código de la comuna.
-Proyecciones_INE <- read_excel("data/estimaciones-y-proyecciones-2002-2035-comunas (1).xlsx")
+
+url3 <- "https://raw.githubusercontent.com/conitru/T2-Rep2/ad36ae77d5def450fbe08e277960efb5b31afbce/docs/data2/estimaciones-y-proyecciones-2002-2035-comunas%20(1).xlsx"
+
+# Descargar el archivo con httr
+Temporal3 <- GET(url3)
+
+# Guardar el archivo descargado en un archivo temporal
+temp_file3 <- tempfile(fileext = ".xlsx")
+writeBin(content(Temporal3, "raw"), temp_file3)
+
+Proyecciones_INE <- read_excel(temp_file3)
 
 #Base 5: Datos de Pobreza Multidimensional de las Encuesta CASEN 2022. Fuente: Encuesta CASEN 2022. Se utilizará para obtener un dato de porcentaje de pobreza para cada comuna.
-CASEN_2022 <- read_excel("data/Estimaciones_Indice_Pobreza_Multidimensional_Comunas_2022.xlsx")
+
+url4 <- "https://raw.githubusercontent.com/conitru/T2-Rep2/ad36ae77d5def450fbe08e277960efb5b31afbce/docs/data2/Estimaciones_Indice_Pobreza_Multidimensional_Comunas_2022.xlsx"
+
+# Descargar el archivo con httr
+Temporal4 <- GET(url4)
+
+# Guardar el archivo descargado en un archivo temporal
+temp_file4 <- tempfile(fileext = ".xlsx")
+writeBin(content(Temporal4, "raw"), temp_file4)
+
+CASEN_2022 <- read_excel(temp_file4)
+
+rm(Temporal1,Temporal2,Temporal3,Temporal4,temp_zip, temp_dir,temp_file1,temp_file2,temp_file3,temp_file4,url_zip,url1, url2, url3, url4,file_to_import,files)
 ```
 
 **Transform**
@@ -865,11 +924,11 @@ tabla2 %>%
 
 ## **Análisis preliminar de datos**
 
-En este apartado se presenta el análisis preliminar de los primeros hallazgos del análisis, junto con su representación gráfica e interpretación.
+En este apartado se presenta el análisis preliminar de los primeros hallazgos del análisis, junto con su representación gráfica e interpretación. Se debe tener en consideración que el análisis se ajusta a los datos ficticios creados producto de la ausencia de información oficial para el análisis.
 
-### **Distribución de los nuevos votantes según sexo**
+### **Distribución territorial de los nuevos votantes**
 
-1.  Mapa
+Según lo observado en el mapa de distribución de los nuevos votantes, las comunas que alcanzan un mayor porcentaje de nuevos votantes, los cuales se representan en el mapa con el color amarillo, corresponden a Ollagüe (43,8% de nuevos votantes), Guaitecas (43,76% de nuevos votantes) y O'Higgins (44,4% de nuevos votantes). En tanto, la comuna que muestra un menor porcentaje de nuevos votantes es la comuna de Primavera (37,02% de nuevos votantes). El resto de los resultados según comuna pueden observarse en la @fig-2.
 
 ```{r, results = 'hide'}
 comunas <- st_read("comunas_simplificado.geojson")
@@ -922,30 +981,123 @@ leaflet(data = Comunas_Mapa_wgs84) %>%
 
 ```
 
+### **Distribución de los tipos de votantes según sexo**
+
+Los datos muestran que los nuevos votantes tienen una distribución similar por sexo a la observada para los votantes permanentes y esporádicos, con un 52% de mujeres y un 48% de hombres. La distribución para cada uno de los tipos de votantes puede observarse en la @fig-3.
+
 ```{r}
 #| label: fig-3
 #| fig-cap: "Distribución por sexo según tipo de votante"
 
 Entidad_Ciudadano %>%
-  ggplot(aes(x = Tipo_Votante, fill = Sexo)) +  # Eje x para Tipo_Votante, apilando por Sexo
-  geom_bar(stat = "count", position = "fill", color = "black") +  # Apilar las barras y normalizar a 100%
-  coord_flip() +  # Si prefieres las barras horizontales
+  group_by(Tipo_Votante, Sexo) %>%
+  summarise(Conteo = n(), .groups = "drop") %>%
+  group_by(Tipo_Votante) %>%
+  mutate(Porcentaje = Conteo / sum(Conteo) * 100) %>%  
+  ggplot(aes(x = Tipo_Votante, y = Porcentaje, fill = Sexo)) +
+  geom_bar(stat = "identity", position = "fill", color = "black") +  
+  coord_flip() + 
   labs(
     title = "Distribución de Sexo por Tipo de Votante",
     x = "Tipo de Votante",
     y = "Proporción",
     fill = "Sexo"
   ) +
-  theme_minimal() +  # Tema limpio y sencillo
+  theme_minimal() +  #
   theme(
-    legend.position = "right",  # Colocar la leyenda a la derecha
+    legend.position = "right", 
     plot.title = element_text(hjust = 0.5)  # Centrar el título
   ) +
   geom_text(
-    aes(label = scales::percent(..count../sum(..count..))),  # Calcular el porcentaje
-    stat = "count", 
-    position = position_fill(vjust = 0.5),  # Colocar las etiquetas en el centro de las porciones
-    color = "white"  # Color del texto
+    aes(label = scales::percent(Porcentaje / 100, accuracy = 0.001)),  
+    position = position_fill(vjust = 0.5), 
+    color = "white" 
+  )
+
+```
+
+### **Distribución de los tipos de votantes según Tramo Etario**
+
+Los datos muetran una distribución de los nuevos votantes marcada por una mayoría de personas adultas (53,57%), mientras que un cuarto de este grupo serían adultos mayores (25,74%), y un quinto serían jóvenes (20,69%). Esta distribución es similar a la observada en los demás grupos de votantes. El detalle de los resultados pueden observarse en la @fig-4.
+
+```{r}
+Entidad_Ciudadano2 <- Entidad_Ciudadano %>% 
+  mutate(TEDAD=case_when(
+    Tramo_Etario=="18-19"~"Joven (18 a 29)",
+    Tramo_Etario=="20-29"~"Joven (18 a 29)",
+    Tramo_Etario=="30-39"~"Adulto (30 a 59)",
+    Tramo_Etario=="40-49"~"Adulto (30 a 59)",
+    Tramo_Etario=="50-59"~"Adulto (30 a 59)",
+    Tramo_Etario=="60-69"~"Adulto Mayor (60 o más)",
+    Tramo_Etario=="70-79"~"Adulto Mayor (60 o más)",
+    Tramo_Etario=="80+"~"Adulto Mayor (60 o más)"))
+```
+
+```{r}
+#| label: fig-4
+#| fig-cap: "Distribución por tramo etario según tipo de votante"
+
+Entidad_Ciudadano2 %>%
+  group_by(Tipo_Votante, TEDAD) %>%
+  summarise(Conteo = n(), .groups = "drop") %>%
+  group_by(Tipo_Votante) %>%
+  mutate(Porcentaje = Conteo / sum(Conteo) * 100) %>%  
+  mutate(TEDAD = factor(TEDAD, levels = c("Adulto Mayor (60 o más)", "Adulto (30 a 59)", "Joven (18 a 29)"))) %>%  # Establecer el orden de TEDAD
+  ggplot(aes(x = Tipo_Votante, y = Porcentaje, fill = TEDAD)) +
+  geom_bar(stat = "identity", position = "fill", color = "black") +  
+  coord_flip() + 
+  labs(
+    title = "Distribución de Tramo Etario por Tipo de Votante",
+    x = "Tipo de Votante",
+    y = "Proporción",
+    fill = "Tramo Etario"
+  ) +
+  theme_minimal() +  #
+  theme(
+    legend.position = "right", 
+    plot.title = element_text(hjust = 0.5)  # Centrar el título
+  ) +
+  geom_text(
+    aes(label = scales::percent(Porcentaje / 100, accuracy = 0.01)),  
+    position = position_fill(vjust = 0.5), 
+    color = "white" 
+  )
+```
+```{r}
+rm(Entidad_Ciudadano2)
+```
+
+### **Distribución de los tipos de votantes según nacionalidad**
+
+En términos de la nacionalidad de los nuevos votantes, el 96,99% son chilenos, mientras que solo un 3,01% son extranjeros, cifras que no varían de modo relevante en los demás tipos de votantes. El detalle de los resultados pueden observarse en la @fig-5.
+
+```{r}
+#| label: fig-5
+#| fig-cap: "Distribución por nacionalidad según tipo de votante"
+
+Entidad_Ciudadano %>%
+  group_by(Tipo_Votante, Nacionalidad) %>%
+  summarise(Conteo = n(), .groups = "drop") %>%
+  group_by(Tipo_Votante) %>%
+  mutate(Porcentaje = Conteo / sum(Conteo) * 100) %>%  
+  ggplot(aes(x = Tipo_Votante, y = Porcentaje, fill = Nacionalidad)) +
+  geom_bar(stat = "identity", position = "fill", color = "black") +  
+  coord_flip() + 
+  labs(
+    title = "Distribución de Nacionalidad por Tipo de Votante",
+    x = "Tipo de Votante",
+    y = "Proporción",
+    fill = "Nacionalidad"
+  ) +
+  theme_minimal() +  #
+  theme(
+    legend.position = "right", 
+    plot.title = element_text(hjust = 0.5)  # Centrar el título
+  ) +
+  geom_text(
+    aes(label = scales::percent(Porcentaje / 100, accuracy = 0.01)),  
+    position = position_fill(vjust = 0.5), 
+    color = "black" 
   )
 
 ```
