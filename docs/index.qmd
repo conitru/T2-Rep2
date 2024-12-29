@@ -17,6 +17,7 @@ format:
     csl: apa-numeric-superscript.csl #Formato de la cita
     theme: cosmo #el tema general, hay muchos tipos
     fig-cap-location: bottom #la ubicación del pie de nota de las figuras/gráficos
+    self-contained: false
 editor: visual
 
 #    css: styles.css
@@ -61,7 +62,9 @@ packages <- c("knitr",
             "ggplot2",
             "DiagrammeR",
             "leaflet",
-            "geojsonio")
+            "geojsonio",
+            "httr"
+            )
 
 # Apply the function to each package
 invisible(capture.output(sapply(packages, install_and_load)))
@@ -867,8 +870,9 @@ En este apartado se presenta el análisis preliminar de los primeros hallazgos d
 ### **Distribución de los nuevos votantes según sexo**
 
 1.  Mapa
+
 ```{r, results = 'hide'}
-comunas <- suppressWarnings(suppressMessages(st_read("comunas.shp")))
+comunas <- st_read("comunas_simplificado.geojson")
 
 comunas <- comunas %>% 
   rename(ID_Comuna=cod_comuna)
