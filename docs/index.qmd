@@ -908,7 +908,9 @@ leaflet(data = Comunas_Mapa_wgs84) %>%
     popup = ~paste("Comuna:", Comuna.y,
                    "<br>Región:", Región,
                    "<br>% de Pobreza Multidimensional CASEN 2022:", round((Porcentaje_Pobreza_CASEN*100),2), "%",
-                  "<br>% de Nuevos Votantes:", round(Porc_Nuevos_Votantes, 2),"%")
+                   "<br>Total Votantes:", Total_Votantes,
+                   "<br>Total Nuevos Votantes:", Total_Nuevos_Votantes,
+                   "<br>% de Nuevos Votantes:", round(Porc_Nuevos_Votantes, 2),"%")
   ) %>%
   addLegend(
     pal = colorNumeric("plasma", Comunas_Mapa_wgs84$Porc_Nuevos_Votantes),  # Paleta de colores
