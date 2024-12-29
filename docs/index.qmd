@@ -14,6 +14,7 @@ format:
     number-depth: 6
     code-fold: true #que los códigos se muestren pero ocultos
     bibliography: ref.bib #se refiere a citas en formato BibTeX
+    csl: apa-numeric-superscript.csl #Formato de la cita
     theme: cosmo #el tema general, hay muchos tipos
     fig-cap-location: bottom #la ubicación del pie de nota de las figuras/gráficos
 editor: visual
@@ -56,7 +57,12 @@ packages <- c("knitr",
             "tidyr",
             "readr",
             "flextable",
-            "DT")
+            "DT",
+            "ggplot2",
+            "DiagrammeR",
+            "chilemapas",
+            "leaflet",
+            "geojsonio")
 
 # Apply the function to each package
 invisible(capture.output(sapply(packages, install_and_load)))
@@ -86,13 +92,13 @@ Un primer elemento clave para comprender la naturaleza del fenómeno de los nuev
 
 Si bien este aumento en la participación electoral es un resultado positivo en términos de los objetivos de la legislación, también viene acompañado por determinados desafíos que es necesario que la sociedad chilena y el sistema político aborden, uno de ellos tiene que ver con la comprensión de este nuevo electorado, tanto en su composición sociodemográfica, como también en sus percepciones asociados a la democracia, por ejemplo en sus niveles de información e interés en los procesos electorales, valoración de la democracia, o en su comportamiento electoral en términos de votos válidos e inválidos. Si bien esto último no se encuentra directamente al alcance con la información disponible actualmente, si es posible profundizar en la composición sociodemográfica de este grupo, evaluando sus similitudes y diferencias con otros tipos de electorado más tradicionales.
 
-Adicionalmente, se debe tener en consideración que durante los últimos años se ha generado un ambiente de alta desafección y desconfianza con la política en la sociedad chilena, y este ambiente ha quedado de manifiesto en múltiples estudios de opinión pública. Por ejemplo, la Encuesta Bicentenario del año 2023 muestra un escenario en donde solo un 1% manifestó tener mucha confianza o bastante confianza en los Partidos Políticos y en los Parlamentarios, mientras que un 11% indicó lo mismo respecto del Gobierno (Pontificia Universidad Católica de Chile & GfK Adimark, 2023). Este contexto de desconfianza puede influir de manera directa en la participación en los procesos electorales, ya sea que se manifieste directamente como abstención de participar, o bien con otras expresiones como los votos nulos o blancos.
+Adicionalmente, se debe tener en consideración que durante los últimos años se ha generado un ambiente de alta desafección y desconfianza con la política en la sociedad chilena, y este ambiente ha quedado de manifiesto en múltiples estudios de opinión pública. Por ejemplo, la Encuesta Bicentenario del año 2023 muestra un escenario en donde solo un 1% manifestó tener mucha confianza o bastante confianza en los Partidos Políticos y en los Parlamentarios, mientras que un 11% indicó lo mismo respecto del Gobierno (Pontificia Universidad Católica de Chile & GfK Adimark, 2023)[@bicentenario2023]. Este contexto de desconfianza puede influir de manera directa en la participación en los procesos electorales, ya sea que se manifieste directamente como abstención de participar, o bien con otras expresiones como los votos nulos o blancos.
 
-Desde la **teoría de la participación electoral**, Verba y Nie (1972) sostienen que la participación política está influenciada por recursos individuales, incentivos y normas sociales. En este sentido, el voto obligatorio introduce un incentivo coercitivo que disminuye las barreras de entrada al proceso electoral, facilitando la incorporación de nuevos electores. De igual forma, la **teoría de la acción racional** de Downs (1957) refuerza este argumento al plantear que los individuos toman decisiones basadas en un análisis de costo-beneficio, por lo que bajo el voto obligatorio, los costos de no participar aumentan, por lo que se incentiva a una participación más amplia.
+Desde la **teoría de la participación electoral**, Verba y Nie (1972)[@verba1987participation] sostienen que la participación política está influenciada por recursos individuales, incentivos y normas sociales. En este sentido, el voto obligatorio introduce un incentivo coercitivo que disminuye las barreras de entrada al proceso electoral, facilitando la incorporación de nuevos electores. De igual forma, la **teoría de la acción racional** de Downs (1957) refuerza este argumento al plantear que los individuos toman decisiones basadas en un análisis de costo-beneficio, por lo que bajo el voto obligatorio, los costos de no participar aumentan, por lo que se incentiva a una participación más amplia.
 
-Desde otra perspectiva, el fenómeno de los nuevos votantes puede analizarse a través de la **teoría de la socialización política**, la que es fundamental para la formación de actitudes cívicas y una cultura cívica. Almond y Verba (1963) sostienen que el voto obligatorio contribuye a construir una percepción del sufragio no sólo como un derecho, sino también como un deber ciudadano. Esto promueve la formación de patrones cívicos más sólidos en los votantes. Asimismo, la **teoría generacional** de Inglehart (1997) plantea que las experiencias políticas iniciales de los nuevos votantes en contextos de obligatoriedad del voto podrían dar lugar a comportamientos y actitudes diferentes a las de generaciones anteriores, generando cambios en la cultura política del país a largo plazo.
+Desde otra perspectiva, el fenómeno de los nuevos votantes puede analizarse a través de la **teoría de la socialización política**, la que es fundamental para la formación de actitudes cívicas y una cultura cívica. Almond y Verba (1963)[@almondverba1963] sostienen que el voto obligatorio contribuye a construir una percepción del sufragio no sólo como un derecho, sino también como un deber ciudadano. Esto promueve la formación de patrones cívicos más sólidos en los votantes. Asimismo, la **teoría generacional** de Inglehart (1997)[@inglehart1997] plantea que las experiencias políticas iniciales de los nuevos votantes en contextos de obligatoriedad del voto podrían dar lugar a comportamientos y actitudes diferentes a las de generaciones anteriores, generando cambios en la cultura política del país a largo plazo.
 
-La **reconfiguración del electorado** es otra forma de comprender la relevancia del voto obligatorio. De acuerdo con Lijphart (1997), el voto obligatorio tiende a aumentar la participación electoral general, reduciendo brechas históricas entre grupos socioeconómicos y etarios, e incorporando sectores que tradicionalmente muestran mayores niveles de abstención (como jóvenes y personas con menor nivel educativo). Finalmente, desde una **perspectiva institucional**, North (1990) sostiene que el cambio de las reglas formales, como el cambio al voto obligatorio, generan nuevos incentivos y restricciones que reconfiguran el comportamiento electoral. Esta ley, que implica un cambio normativo, también se presenta como una oportunidad para analizar cómo los nuevos votantes responden a estas transformaciones institucionales, y cómo su participación puede incidir en la legitimidad y representatividad de las elecciones.
+La **reconfiguración del electorado** es otra forma de comprender la relevancia del voto obligatorio. De acuerdo con Lijphart (1997)[@lijphart1997], el voto obligatorio tiende a aumentar la participación electoral general, reduciendo brechas históricas entre grupos socioeconómicos y etarios, e incorporando sectores que tradicionalmente muestran mayores niveles de abstención (como jóvenes y personas con menor nivel educativo). Finalmente, desde una **perspectiva institucional**, North (1990)[@north1990institutions] sostiene que el cambio de las reglas formales, como el cambio al voto obligatorio, generan nuevos incentivos y restricciones que reconfiguran el comportamiento electoral. Esta ley, que implica un cambio normativo, también se presenta como una oportunidad para analizar cómo los nuevos votantes responden a estas transformaciones institucionales, y cómo su participación puede incidir en la legitimidad y representatividad de las elecciones.
 
 ## **Objetivos del estudio**
 
@@ -110,9 +116,9 @@ En el contexto de este estudio, un factor clave de la reproducibilidad tiene que
 
 En tanto, la replicabilidad hace referencia a que los resultados puedan ser validados en contextos diferentes o momentos históricos distintos. Esto ayuda a descubrir variaciones y patrones contextuales que aportan a la teoría y práctica en el análisis de la participación política. En este caso, el fenómeno de las elecciones y sus niveles de participación es una problemática de estudio transversal a todas las democracias, cada una de ellas con sus propias especificidades (por ejemplo, si la inscripción al padrón es automática o voluntaria, si es permanente o transitoria, si el voto es electrónico, si se puede votar anticipadamente, entre muchas otras), por lo que un estudio de este tipo puede resultar fundamental como insumo y experiencia comparada para investigaciones similares en contextos electorales diferentes, ya sea dentro de Chile o en otros países.
 
-El principio de ciencia abierta promueve el acceso a datos, métodos y resultados, lo que permite a investigadores utilizar la información y reinterpretarla. Este principio no sólo democratiza el conocimiento, sino que también contribuye a la transparencia del proceso científico y a la construcción de políticas basadas en evidencia. **Los debates actuales de ciencia de datos (Abbasi et al. 2023)** se centran en que los esfuerzos científicos deben dirigirse hacia desafíos sociales como la equidad, la justicia y la participación ciudadana. Esto, utilizando metodologías sólidas y accesibles que generen un impacto tangible en la sociedad.
+El principio de ciencia abierta promueve el acceso a datos, métodos y resultados, lo que permite a investigadores utilizar la información y reinterpretarla. Este principio no sólo democratiza el conocimiento, sino que también contribuye a la transparencia del proceso científico y a la construcción de políticas basadas en evidencia. **Los debates actuales de ciencia de datos (Abbasi et al. 2023)**[@abbasi2023data] se centran en que los esfuerzos científicos deben dirigirse hacia desafíos sociales como la equidad, la justicia y la participación ciudadana. Esto, utilizando metodologías sólidas y accesibles que generen un impacto tangible en la sociedad.
 
-Para poder cumplir con estos principios de ciencia abierta, reproducibilidad y replicabilidad, se generará un modelo dimensional, el cual es una de las técnicas más aceptadas para la presentación de análisis de datos, ya que aborda dos requerimientos clave: **Entregar información entendible para los usuarios y entregar requerimientos de datos de manera rápida (Kimball y Ross, 2013)**. El proyecto actual se plantea bajo estos mismos principios, buscando modelar información de manera simple y fácil de interpretar, utilizando también diversas recomendaciones para la **gestión de datos (Wilson et al, 2017)**, tales como la creación de datos fáciles de entender, amigables para el análisis, con múltiples tablas con identificadores únicos para cada registro, entre otros.
+Para poder cumplir con estos principios de ciencia abierta, reproducibilidad y replicabilidad, se generará un modelo dimensional, el cual es una de las técnicas más aceptadas para la presentación de análisis de datos, ya que aborda dos requerimientos clave: **Entregar información entendible para los usuarios y entregar requerimientos de datos de manera rápida (Kimball y Ross, 2013)**[@kimball2013data]. El proyecto actual se plantea bajo estos mismos principios, buscando modelar información de manera simple y fácil de interpretar, utilizando también diversas recomendaciones para la **gestión de datos (Wilson et al, 2017)**[@wilson2017good], tales como la creación de datos fáciles de entender, amigables para el análisis, con múltiples tablas con identificadores únicos para cada registro, entre otros.
 
 ## **Arquitectura de datos (ETL)**
 
@@ -122,34 +128,36 @@ En esta fase se recopilan los datos de diversas fuentes relevantes para el estud
 
 -   Fuentes de Datos:
 
-    -   SERVEL: Datos del padrón electoral, participación por edad, género y región.
+    -   SERVEL: Datos del padrón electoral, participación por tramo etario, sexo, nacionalidad, comuna y mesa.
+
+        -   Se consideran datos de múltiples elecciones, aunque para el ejercicio sólo se consideran los datos de la elección de Gobernadores Regionales de 2024.
 
     -   Encuestas públicas:
 
-        -   CASEN (nivel socioeconómico, edad, región).
+        -   Encuesta CASEN 2022 (pobreza multidimensional por comuna).
 
-    -   Datos históricos: Elecciones anteriores (comparación con voto voluntario).
+    -   Datos INE: Proyecciones de población año 2024.
 
 ```{r}
 #La bases bases de datos a utilizar pueden descargarse del siguiente link: https://drive.google.com/file/d/1cRmGrrqzyAh4h2uRuKpuNkNenis-y0ir/view?usp=drive_link
 
-#Para el correcto funcionamiento del código, guardar las bases de datos descargadas en la misma carpeta en que se encuentra el proyecto en R, con los mismos nombres con que vienen del link.
+#Para el correcto funcionamiento del código, guardar las bases de datos descargadas en la carpeta "data" que se encuentra dentro de la carpeta "docs" del Github, con los mismos nombres con que vienen del link.
 
 #Base 1: Resultados de Votación. Origen: Servel. Dato Público.
-Base_Votacion_Gob2024 <- read_excel("2024_11_GobernadoresRegionales_Datos_Eleccion.xlsx", 
+Base_Votacion_Gob2024 <- read_excel("data/2024_11_GobernadoresRegionales_Datos_Eleccion.xlsx", 
     skip = 4)
 
 #Base 2: Datos de Participación por Ciudadano Anonimizado. Origen: Ficticio, creada con la estructura de participación de la elección de Gobernadores de 2024 (Mesa-Comuna-Región), pero con resultados aleatorizados. El proceso de creación de la base de datos aleatorizada se adjuntará como anexo al final del presente informe.
-Entidad_Ciudadano <- read_csv("Entidad Ciudadano (Base Ficticia).csv")
+Entidad_Ciudadano <- read_csv("data/Entidad Ciudadano (Base Ficticia).csv")
 
 #Base 3: Datos de Entidad Elección. Esta base fue construída por el equipo investigador como un resumen de las elecciones que potencialmente podrían considerarse para el análisis. Para efectos del presente ejercicio, solo se trabajará con datos de la elección de Gobernadores de 2024.
-Entidad_Elección <- read_excel("Base Entidad Elección.xlsx")
+Entidad_Elección <- read_excel("data/Base Entidad Elección.xlsx")
 
 #Base 4: Proyecciones de Población de 2024. Origen: INE. Base de datos del INE con las proyecciones de población, para usarlo como fuente para recuperar el código de la comuna.
-Proyecciones_INE <- read_excel("estimaciones-y-proyecciones-2002-2035-comunas (1).xlsx")
+Proyecciones_INE <- read_excel("data/estimaciones-y-proyecciones-2002-2035-comunas (1).xlsx")
 
 #Base 5: Datos de Pobreza Multidimensional de las Encuesta CASEN 2022. Fuente: Encuesta CASEN 2022. Se utilizará para obtener un dato de porcentaje de pobreza para cada comuna.
-CASEN_2022 <- read_excel("Estimaciones_Indice_Pobreza_Multidimensional_Comunas_2022.xlsx")
+CASEN_2022 <- read_excel("data/Estimaciones_Indice_Pobreza_Multidimensional_Comunas_2022.xlsx")
 ```
 
 **Transform**
@@ -433,13 +441,6 @@ Tipología_Mesa <- Tipología_Mesa %>%
          Porc_Votantes_Permanentes=((`Votante Permanente`/Total_Votantes)*100),
          Porc_Votantes_Esporádicos=((`Votante Esporádico`/Total_Votantes)*100))
 
-#Calculo de tipo de mesa.
-Tipología_Mesa <- Tipología_Mesa %>%
-  mutate(Tipo_Mesa = ifelse(
-      Porc_Nuevos_Votantes > Porc_Votantes_Permanentes & 
-      Porc_Nuevos_Votantes > Porc_Votantes_Esporádicos,
-      "Mesa de Nuevos Votantes",
-      "Otro tipo de mesa"))
 
 #Se debe elegir un criterio para la clasificación de las mesas categorizadas como "Mesas de Nuevos Votantes". En este punto serán fundamentales los datos reales para poder tomar la decisión, pero dado que en este caso se están utilizando datos ficticios, se tomará como referencia el 30% de mesas con mayor porcentaje de nuevos votantes.
 
@@ -539,7 +540,6 @@ Entidad_Comuna <- Entidad_Comuna %>%
 rm(CASEN_2022,CASEN_2022_2, Base_Votacion_Gob2024, Base_Votacion_Gob2024_2)
 ```
 
-
 **Load**
 
 En esta fase, los datos transformados se almacenan en un sistema o entorno adecuado para su análisis final.
@@ -557,12 +557,11 @@ En esta fase, los datos transformados se almacenan en un sistema o entorno adecu
 ## **Modelo Conceptual**
 
 ```{r}
-library(DiagrammeR)
-```
+#| label: fig-1
+#| fig-cap: "Modelo Conceptual"
 
-```{r}
 grViz("
-  digraph ModeloLogico {
+  digraph ModeloConceptual {
     graph [layout = dot, rankdir = LR]
     
     node [shape = rectangle, style = filled, fillcolor = lightgrey, fontname = Arial, fontsize = 10]
@@ -627,6 +626,7 @@ grViz("
 ## **Modelo lógico**
 
 ### **Entidad Elección**
+
 ```{r}
 #| label: tbl-tabla1
 #| tbl-cap: "Tabla de Base Entidad Elección"
@@ -640,14 +640,17 @@ datatable(
     searchHighlight = TRUE
   )
 )
-
 ```
 
 ### **Entidad Ciudadano**
+
 Nota técnica: Solo se presentan 200 casos de la base de datos de la entidad ciudadano, ya que dicha base tiene una cantidad de casos de 13.122.261 casos.
+
 ```{r}
 Entidad_Ciudadano_200 <- head(Entidad_Ciudadano, 200)
+```
 
+```{r}
 #| label: tbl-tabla2
 #| tbl-cap: "Tabla de Base Entidad Ciudadano"
 
@@ -663,10 +666,15 @@ datatable(
 ```
 
 ### **Entidad Mesa**
+
 Nota técnica: Solo se presentan 200 casos de la base de datos de la entidad mesa, ya que dicha base tiene una cantidad de casos de 40.014 casos.
+
 ```{r}
 Entidad_Mesa_200 <- head(Entidad_Mesa, 200)
 
+```
+
+```{r}
 #| label: tbl-tabla3
 #| tbl-cap: "Tabla de Base Entidad Mesa"
 
@@ -680,7 +688,9 @@ datatable(
   )
 )
 ```
+
 ### **Entidad Comuna**
+
 ```{r}
 #| label: tbl-tabla4
 #| tbl-cap: "Tabla de Base Entidad Comuna"
@@ -697,10 +707,15 @@ datatable(
 ```
 
 ### **Entidad Votación**
+
 Nota técnica: Solo se presentan 200 casos de la base de datos de la entidad votación, ya que dicha base tiene una cantidad de casos de 359.162 casos.
+
 ```{r}
 Entidad_Votación_200 <- head(Entidad_Votación, 200)
 
+```
+
+```{r}
 #| label: tbl-tabla5
 #| tbl-cap: "Tabla de Base Entidad Votación"
 
@@ -717,7 +732,7 @@ datatable(
 
 ## **Métricas y dimensiones del análisis de datos**
 
-**MÉTRICAS**
+### **Métricas**
 
 ```{r}
 # Crear la tabla
@@ -729,137 +744,112 @@ tabla <- data.frame(
     "Distribución de nuevos votantes por sexo",
     "Distribución de nuevos votantes por afiliación a partido político",
     "Distribución de nuevos votantes por nacionalidad",
-    "Distribución de nuevos votantes según pobreza a nivel comunal",
-    "Agrupar los porcentajes de “nuevos votantes” según mesa e identificar “tipos” de mesa",
-    "Porcentaje de votos nulos y blancos por tipo de mesa (Tipo_Mesa2)"
-  ),
+    "Distribución de nuevos votantes según pobreza a nivel comunal"
+    ),
   Descripción = c(
-    "Porcentaje de votantes habilitados que emitieron su voto.
-Fórmula: 
-$(Votos Emitidos/Total de votantes habilitados)*100$ 
+    "Porcentaje de votantes habilitados que emitieron su voto.<br><br>
 
-Niveles de análisis (Subconjuntos para estratificar): Este dato se puede presentar agrupado a nivel de las entidades mesa, comuna y elección.
+    <b>Fórmula:</b><br>
+(Votos Emitidos/Total de votantes habilitados)*100<br><br>
 
-Filtros: A nivel de individuo, la información puede filtrarse por sexo, tramo etario y nacionalidad, para poder analizar por segmentos la tasa de participación.",
+<b>Niveles de análisis (Subconjuntos para estratificar):</b> Este dato se puede presentar agrupado a nivel de las entidades mesa, comuna y elección.<br><br>
+
+<b>Filtros:</b> A nivel de individuo, la información puede filtrarse por sexo, tramo etario y nacionalidad, para poder analizar por segmentos la tasa de participación.",
     
-    "En base a las 8 elecciones consideradas para el análisis, se clasificará a cada ciudadano según los siguientes criterios.
+    "En base a las 8 elecciones consideradas para el análisis, se clasificará a cada ciudadano según los siguientes criterios.<br><br>
 
-Votante permanente: 100% de participación en todas las elecciones posibles.
-Nuevo votante: 0% de participación en las elecciones de 2020 y 2021 (si es que forma parte del padrón), y >0% en las elecciones de 2022 en adelante.
-Votante Esporádico: Todas las demás combinaciones.
+<b>Votante permanente:</b> 100% de participación en todas las elecciones posibles.<br>
+<b>Nuevo votante:</b> 0% de participación en las elecciones de 2020 y 2021 (si es que forma parte del padrón), y >0% en las elecciones de 2022 en adelante.<br>
+<b>Votante Esporádico:</b> Todas las demás combinaciones.<br><br>
 
-Fórmula: 
+<b>Fórmula:</b><br> 
 
-Participación elecciones con voto voluntario (P1):
+Participación elecciones con voto voluntario (P1):<br>
 
-(n de elecciones con voto voluntarioTotal de elecciones con voto voluntario)*100 
+(n de elecciones con voto voluntario/Total de elecciones con voto voluntario)*100<br><br> 
 
-Participación elecciones con voto obligatorio (P2):
+Participación elecciones con voto obligatorio (P2):<br>
 
-(n de elecciones con voto obligatorioTotal de elecciones posibles con voto obligatorio)*100 
+(n de elecciones con voto obligatorio/Total de elecciones posibles con voto obligatorio)*100<br><br>
 
-Nota 1: Se consideran como elecciones posibles sólo aquellas desarrolladas entre 2020 y 2024, y que consideren a la totalidad del padrón electoral (no incluye primarias ni 2da vuelta de Gobernadores)
+<b>Nota 1:</b> Se consideran como elecciones posibles sólo aquellas desarrolladas entre 2020 y 2024, y que consideren a la totalidad del padrón electoral (no incluye primarias ni 2da vuelta de Gobernadores)<br>
 
-Nota 2: Las personas que cumplieron su edad para votar durante el periodo analizado (2020 a 2024)  serán categorizadas como “votante permanente” si es que participaron en todas sus elecciones posibles, o “votante esporádico” en las demás combinaciones.
+<b>Nota 2:</b> Las personas que cumplieron su edad para votar durante el periodo analizado (2020 a 2024)  serán categorizadas como “votante permanente” si es que participaron en todas sus elecciones posibles, o “votante esporádico” en las demás combinaciones.<br><br>
 
-Reglas de clasificación (R):
+<b>Niveles de análisis (Subconjuntos para estratificar):</b> La tipología de votantes puede analizarse a nivel total, o agrupada por comuna o mesa.<br><br>
 
-`datos ← datos %>%
-  mutate(Tipo_Votante = case_when(
-    P1 == 100 & P2 == 100 ~ 'Votante Permanente',
-    P1 == 0 & P2 != 0 ~ 'Nuevo Votante',
-    TRUE ~ 'Votante Esporádico'))`
+<b>Filtros:</b> A nivel de individuo, la tipología puede filtrarse por datos sociodemográficos (sexo, tramo etario, nacionalidad, afiliación a partido político)",
 
-*Posteriormente se deben identificar los “nuevos votantes” que cumplieron su edad de votar durante el periodo estudiado, y recodificarlos como “votante esporádico”.
+    "Frecuencias absolutas y relativas de la variable tramo etario según el tipo de votante (Tipo_Votante)<br><br> 
 
-Niveles de análisis (Subconjuntos para estratificar): La tipología de votantes puede analizarse a nivel total, o agrupada por comuna o mesa.
+<b>Nivel de análisis (Subconjuntos para estratificar):</b> Total, comunal y por mesa",
 
-Filtros: A nivel de individuo, la tipología puede filtrarse por datos sociodemográficos (sexo, tramo etario, nacionalidad, afiliación a partido político)",
+    "Frecuencias absolutas y relativas de la variable sexo según el tipo de votante (Tipo_Votante)<br><br> 
 
-    "Frecuencias absolutas y relativas de la variable tramo etario según el tipo de votante (Tipo_Votante) 
+<b>Nivel de análisis (Subconjuntos para estratificar):</b> Total, comunal y por mesa",
 
-Nivel de análisis (Subconjuntos para estratificar): Total, comunal y por mesa",
+    "Frecuencias absolutas y relativas de la variable afiliación partido político según el tipo de votante (Tipo_Votante)<br><br>
 
-    "Frecuencias absolutas y relativas de la variable sexo según el tipo de votante (Tipo_Votante) 
+<b>Nivel de análisis (Subconjuntos para estratificar):</b> Total, comunal y por mesa",
 
-Nivel de análisis (Subconjuntos para estratificar): Total, comunal y por mesa",
+    "Frecuencias absolutas y relativas de la variable nacionalidad según el tipo de votante (Tipo_Votante)<br><br>
 
-    "Frecuencias absolutas y relativas de la variable afiliación partido político según el tipo de votante (Tipo_Votante)
+<b>Nivel de análisis (Subconjuntos para estratificar):</b> Total, comunal y por mesa",
 
-Nivel de análisis (Subconjuntos para estratificar): Total, comunal y por mesa",
+    "Correlación entre “Porcentaje_Pobreza_CASEN” y “Porcentaje de nuevos votantes” a nivel comunal<br><br>
 
-    "Frecuencias absolutas y relativas de la variable nacionalidad según el tipo de votante (Tipo_Votante)
-
-Nivel de análisis (Subconjuntos para estratificar): Total, comunal y por mesa",
-
-    "Correlación entre “Porcentaje_Pobreza_CASEN” y “Porcentaje de nuevos votantes” a nivel comunal
-
-Nivel de análisis (Subconjuntos para estratificar): Solo comunal.",
-
-    "Calcular el porcentaje de nuevos votantes por mesa (A partir de la variable “Tipo_Votante”):
-
-Fórmula:
-Tipo_Mesa = (n de nuevos votantes de la mesaPadrón Electoral de la mesa)*100 
-
-Una vez identificado, clasificar las mesas según el porcentaje de “nuevos votantes” (Tipo_Mesa2):
-
-Mesas de mayoría de nuevos votantes: 70% o más son nuevos votantes.
-Mesas mixtas: Entre 31% y 69% son nuevos votantes.
-Mesas de minoría de nuevos votantes: 30% o menos son nuevos votantes.
-
-Nota: Los porcentajes de clasificación son tentativos, y se revisarán una vez que se tenga la distribución de la variable Tipo_Mesa.
-
-Nivel de análisis (Subconjuntos para estratificar): Solo por Mesa.
-
-Filtros: Se puede filtrar por atributos de la mesa, como por ejemplo el local de votación.",
-
-    "Calcular el porcentaje de votos nulos y blancos para cada tipología de mesa creada con la variable “Tipo_Mesa2”
-Resultados ←  datos %>%
-  `group_by(Tipo_Mesa2) %>% 
-  summarise(
-    Total_Votos = sum(Votos_Nulos + Votos_Blancos + Votos_Validos), 
-    Porcentaje_Nulos = sum(Votos_Nulos) / Total_Votos * 100,
-    Porcentaje_Blancos = sum(Votos_Blancos) / Total_Votos * 100,   
-    Porcentaje_Validos = sum(Votos_Validos) / Total_Votos * 100)`
-
-Nivel de análisis (Subconjuntos para estratificar): Solo por Mesa.
-
-Filtros: Se puede filtrar por atributos de la mesa, como por ejemplo el local de votación."
-  )
+<b>Nivel de análisis (Subconjuntos para estratificar):</b> Solo comunal."),
+ stringsAsFactors = FALSE  # Asegurar que el texto no se trate como factor
 )
+```
 
-# Mostrar tabla con formato mejorado
-library(kableExtra)
+```{r}
+#| label: tbl-tabla6
+#| tbl-cap: "Métricas"
 
 tabla %>%
-  kbl(caption = "Tabla de Dos Columnas y Nueve Filas") %>%
+  kbl(caption = "MÉTRICAS", escape = FALSE) %>%
   kable_styling(full_width = FALSE) %>%
   column_spec(2, width = "30em")  # Ajustar ancho de la columna Descripción
 ```
 
-**DIMENSIONES**
+### **Dimensiones**
 
-+--------------+-----------------------------------------------------------------+
-| Demográficas | -   Edad (segmentos: jóvenes, adultos, adultos mayores).        |
-|              |                                                                 |
-|              | -   Género                                                      |
-|              |                                                                 |
-|              | -   Nacionalidad                                                |
-|              |                                                                 |
-|              | -   Región                                                      |
-|              |                                                                 |
-|              | -   comuna                                                      |
-+--------------+-----------------------------------------------------------------+
-| Económicas   | -   Porcentaje de Pobreza CASEN (Comuna)                        |
-+--------------+-----------------------------------------------------------------+
-| Contextuales | -   Participación en elecciones previas (Trayectoria Electoral) |
-|              |                                                                 |
-|              | -   Afiliación a Partido Político                               |
-|              |                                                                 |
-|              | -   Tipo de Votante                                             |
-|              |                                                                 |
-|              | -   Tipo de Mesa                                                |
-+--------------+-----------------------------------------------------------------+
+```{r}
+# Crear la tabla
+tabla2 <- data.frame(
+  Categoría = c(
+    "Demográficas",
+    "Económicas",
+    "Contextuales"
+    ),
+  Descripción = c(
+    "Tramo etario<br>
+    Sexo<br>
+    Nacionalidad<br>
+    Región<br>
+    Comuna",
+    
+    "Porcentaje de pobreza CASEN (Comuna)",
+
+    "Participación en elecciones previas (Trayectoria Electoral)<br>
+    Afiliación a partido político<br>
+    Tipo de votante<br>
+    Tipo de mesa"),
+  
+ stringsAsFactors = FALSE  # Asegurar que el texto no se trate como factor
+)
+```
+
+```{r}
+#| label: tbl-tabla7
+#| tbl-cap: "Dimensiones"
+
+tabla2 %>%
+  kbl(caption = "DIMENSIONES", escape = FALSE) %>%
+  kable_styling(full_width = FALSE) %>%
+  column_spec(2, width = "30em")  # Ajustar ancho de la columna Descripción
+```
 
 ## **Limitaciones y consideraciones éticas en el uso de los datos**
 
@@ -870,3 +860,240 @@ tabla %>%
 -   **Riesgo de sesgos o interpretaciones equivocadas:** El análisis debe realizarse desde una perspectiva imparcial, evitando sesgos políticos o interpretaciones que puedan tergiversar los resultados. (Por ejemplo, algunas prenociones que se manejan en el debate público son que los nuevos votantes son un grupo de menor nivel educacional, esto habría que mantenerlo un poco de lado y efectivamente ver si los datos respaldan o no este tipo de hipótesis)
 
 -   **Transparencia y reproducibilidad:** Asegurar que el estudio siga los principios de la ciencia abierta y la reproducibilidad, documentando el uso de las fuentes de datos y los métodos analíticos.
+
+## **Análisis preliminar de datos**
+
+En este apartado se presenta el análisis preliminar de los primeros hallazgos del análisis, junto con su representación gráfica e interpretación.
+
+### **Distribución de los nuevos votantes según sexo**
+
+1.  Mapa
+```{r, results = 'hide'}
+comunas <- suppressWarnings(suppressMessages(st_read("comunas.shp")))
+
+comunas <- comunas %>% 
+  rename(ID_Comuna=cod_comuna)
+
+#Se revisa si hay casos no coincidentes por ID_Comuna
+no_coincidentes <- Entidad_Comuna %>%
+  anti_join(comunas, by = "ID_Comuna")
+
+no_coincidentes2 <- comunas %>%
+  anti_join(Entidad_Comuna, by = "ID_Comuna")
+
+Comunas_Mapa <- comunas %>%
+  inner_join(Entidad_Comuna, by = "ID_Comuna")
+
+Comunas_Mapa <- Comunas_Mapa %>% filter(codregion != 0) # Eliminamos la región 0 ya que no podremos georeferenciarla, es básicamente un NA (En este caso la comuna de Antartica queda dentro de esta clasificación según los polígonos oficiales descargados)
+
+Comunas_Mapa <- st_as_sf(Comunas_Mapa, coords = c("lon", "lat"), crs = 4326)
+
+Comunas_Mapa_wgs84 <- st_transform(Comunas_Mapa, crs = 4326) # Transformamos el mapa a WGS84. Es como "traducir" las coordenadas de un sistema a otro para que todos los elementos del mapa web (base map, polígonos, marcadores, etc.) "hablen el mismo idioma" geográfico.
+
+rm(no_coincidentes,no_coincidentes2)
+```
+
+```{r}
+#| label: fig-2
+#| fig-cap: "Mapa Interactivo de Porcentaje de Nuevos Votantes por comuna"
+
+leaflet(data = Comunas_Mapa_wgs84) %>%
+  addTiles() %>%  # Agregamos el mapa base
+  addPolygons(
+    fillColor = ~colorNumeric("plasma", Porc_Nuevos_Votantes)(Porc_Nuevos_Votantes),
+    fillOpacity = 0.7,  # Opacidad del relleno
+    color = "white",  # Color del borde
+    weight = 1,  # Grosor del borde
+    popup = ~paste("Comuna:", Comuna.y,
+                   "<br>Región:", Región,
+                   "<br>% de Pobreza Multidimensional CASEN 2022:", round((Porcentaje_Pobreza_CASEN*100),2), "%",
+                   "<br>Total Votantes:", Total_Votantes,
+                   "<br>Total Nuevos Votantes:", Total_Nuevos_Votantes,
+                   "<br>% de Nuevos Votantes:", round(Porc_Nuevos_Votantes, 2),"%")
+  ) %>%
+  addLegend(
+    pal = colorNumeric("plasma", Comunas_Mapa_wgs84$Porc_Nuevos_Votantes),  # Paleta de colores
+    values = Comunas_Mapa_wgs84$Porc_Nuevos_Votantes,  # Valores que se están utilizando para la paleta
+    title = "Porcentaje Nuevos Votantes",  # Título de la leyenda
+    opacity = 0.7,  # Opacidad de la leyenda
+    position = "bottomright"  # Ubicación de la leyenda
+  )
+
+```
+
+```{r}
+#| label: fig-3
+#| fig-cap: "Distribución por sexo según tipo de votante"
+
+Entidad_Ciudadano %>%
+  ggplot(aes(x = Tipo_Votante, fill = Sexo)) +  # Eje x para Tipo_Votante, apilando por Sexo
+  geom_bar(stat = "count", position = "fill", color = "black") +  # Apilar las barras y normalizar a 100%
+  coord_flip() +  # Si prefieres las barras horizontales
+  labs(
+    title = "Distribución de Sexo por Tipo de Votante",
+    x = "Tipo de Votante",
+    y = "Proporción",
+    fill = "Sexo"
+  ) +
+  theme_minimal() +  # Tema limpio y sencillo
+  theme(
+    legend.position = "right",  # Colocar la leyenda a la derecha
+    plot.title = element_text(hjust = 0.5)  # Centrar el título
+  ) +
+  geom_text(
+    aes(label = scales::percent(..count../sum(..count..))),  # Calcular el porcentaje
+    stat = "count", 
+    position = position_fill(vjust = 0.5),  # Colocar las etiquetas en el centro de las porciones
+    color = "white"  # Color del texto
+  )
+
+```
+
+## **Anexos**
+
+Se adjunta como anexo el código para la creación de la base ficticia "Entidad_Ciudadano". Se debe considerar que el código considera la asignación aleatoria de datos para poder describir variables a las cuales no se tiene acceso al momento de realizar el ejercicio. 
+
+Se adjunta este código para poder dejar registro de cómo se construyó la base de datos ficticia. Sin embargo, para los análisis, se decargará la base creada y se cargará de modo independiente, para asegurira la reproducibilidad de los datos, y evitar llegar a resultados diferentes a partir de la aleatorización de los datos.
+
+```{r, eval=FALSE}
+#Paso 1: Creación de una estructura de base de datos para la Entidad Ciudadano. Esta estructura se genera a partir de los datos de "Entidad_Votación"
+Base_Agrupada <- Entidad_Votación %>%
+  group_by(ID_Mesa, Tipo_Voto2, ID_Elección, ID_Comuna, Comuna, ID_Región, Región) %>%
+  summarise(Votos_Agrupados = sum(Cantidad_Votos, na.rm = TRUE), .groups = "drop")
+
+#Se crea la llave primaria temporal "ID_Agrupación", que se ocupará para recuperar todos los datos en la base ficticia.
+Base_Agrupada <- Base_Agrupada %>% 
+   mutate(ID_Agrupación = row_number())
+ 
+distribucion_agrupación <- Base_Agrupada %>%
+  mutate(Distribució_Agr=(Votos_Agrupados/sum(Votos_Agrupados)))
+  
+distribucion_agrupación2 <- distribucion_agrupación %>% 
+  select(ID_Agrupación, Distribució_Agr)
+
+#Total de casos que deberá tener la base de datos nueva (ficticia)
+total_casos <- 13122261
+
+Base_Ficticia <- distribucion_agrupación2 %>%
+  mutate(casos_ficticios = round(Distribució_Agr * total_casos)) %>%
+  uncount(casos_ficticios) %>%
+  arrange(ID_Agrupación)
+
+#Paso 2: Una vez creada la estructura de la base con el total de casos, se utilizará el ID_Votación como llave para recuperar los resultados y distribución territorial de la base de datos.
+#Se crea el ID_Ciudadano, en este caso será un número correlativo de 1 a 13122261.
+Base_Ficticia <- Base_Ficticia %>% 
+   mutate(ID_Ciudadano = row_number())
+
+#Se recuperan los datos de la base "Base_Ficticia" 
+Entidad_Ciudadano <- Base_Ficticia %>%
+  left_join(Base_Agrupada, by = "ID_Agrupación")
+
+#Se remueven las bases utilizadas previamente y que ya no tendrán uso, para limpiar el environment.
+rm(Base_Agrupada,Base_Ficticia,distribucion_agrupación,distribucion_agrupación2)
+
+#Paso 2.1: Verificación de la base nueva. Se revisarán las distribuciones por mesa y comuna en ambas bases, para ver si los resultados coinciden.
+
+Resumen_Comuna_Ciudadano <- Entidad_Ciudadano %>%
+  group_by(Comuna) %>%
+  summarise(Cantidad_Casos = n(), .groups = "drop")
+
+# Mostrar el resultado
+print(Resumen_Comuna_Ciudadano)
+
+Resumen_Comuna_Votación <- Entidad_Votación %>%
+  group_by(Comuna) %>%
+  summarise(Cantidad_Casos = sum(Cantidad_Votos))
+
+# Mostrar el resultado
+print(Resumen_Comuna_Votación)
+
+#Unir ambas bases
+Base_verificación <- Resumen_Comuna_Ciudadano %>% 
+  left_join(Resumen_Comuna_Votación, by = "Comuna")
+
+#Se verifica que las dos bases tienen la misma cantidad de casos por comuna, por lo que el ejercicio de creación de una base ficticia se considera exitoso.
+
+#Paso 3: Se asignan de modo aleatorio las variables de caracterización sociodemográfica de la base de datos: Sexo, tramo etario, nacionalidad, afiliación a partido político y tipo de votante. Se utilizará la función sample para esto. 
+
+#- Los porcentajes para distribuir las variables se obtendrán de los datos de descripción de votantes de plebiscito 2023 (Sexo, tramo etario y nacionalidad), que son los últimos datos disponibles de Servel. 
+#- En el caso de la afiliación a partido político, se utilizará el dato del padrón electoral en 2023 (2,88% inscrito en partido)
+#- Tipo de votante: El diseño del estudio propone la creación de una tipología de 3 variables, AQUI VOY.
+
+#Nota relevante: Este ejercicio va en contra del objetivo principal del estudio, que es la caracterización del grupo de nuevos votantes, sin embargo ante la imposibilidad de obtener los datos reales en los plazos establecidos para el trabajo, se optará por privilegiar los objetivos del curso, que tienen que ver con la reproducibilidad de los datos.
+
+set.seed(123)  # Fijar semilla para reproducibilidad
+
+#Aleatorización de sexo.
+Entidad_Ciudadano_2 <- Entidad_Ciudadano %>%
+  mutate(Sexo = sample(c("Hombre", "Mujer"), 
+                       size = n(), 
+                       replace = TRUE, 
+                       prob = c(0.48, 0.52)))
+
+table(Entidad_Ciudadano_2$Sexo)
+
+#Aleatorización de Tramo etario.
+Entidad_Ciudadano_2 <- Entidad_Ciudadano_2 %>%
+  mutate(Tramo_Etario = sample(c("18-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+"), 
+                       size = n(), 
+                       replace = TRUE, 
+                       prob = c(0.0321, 0.1749, 0.1953, 0.1711, 0.1693, 0.1429, 0.0805, 0.0339)))
+
+table(Entidad_Ciudadano_2$Tramo_Etario)
+
+#Aleatorización de Nacionalidad.
+Entidad_Ciudadano_2 <- Entidad_Ciudadano_2 %>%
+  mutate(Nacionalidad = sample(c("Chilena", "Extranjera"), 
+                       size = n(), 
+                       replace = TRUE, 
+                       prob = c(0.97, 0.03)))
+
+table(Entidad_Ciudadano_2$Nacionalidad)
+
+#Aleatorización de Afiliacion a Partido Político.
+Entidad_Ciudadano_2 <- Entidad_Ciudadano_2 %>%
+  mutate(Afiliación_PP = sample(c("Sí", "No"), 
+                       size = n(), 
+                       replace = TRUE, 
+                       prob = c(0.0288, 0.9712)))
+
+table(Entidad_Ciudadano_2$Afiliación_PP)
+
+#Aleatorización de Tipo de Votante.
+#La categorización de los ciudadanos por tipo de votantes es la principal clasificación requerida para el análisis de los nuevos votantes, y para poder realizarla se requiere de la trayectoria electoral de las personas que conforman el padrón de las elecciones de 2024.
+#No obstante, para el ejercicio de este taller, no se cuenta aún con los datos oficiales de las trayectorias electorales, por lo que se generarán de modo aleatorio las clasificaciones de tipo de votante, usando las siguientes proporciones:
+
+#  - Votante Permanente: 35%
+#  - Votante Esporádico: 24%
+#  - Votante Nuevo: 41%
+#  *Datos Ficticios
+
+#Aleatorización de Tipo de Votante.
+Entidad_Ciudadano_2 <- Entidad_Ciudadano_2 %>%
+  mutate(Tipo_Votante = sample(c("Votante Permanente", "Votante Esporádico","Nuevo Votante"), 
+                       size = n(), 
+                       replace = TRUE, 
+                       prob = c(0.35, 0.24, 0.41)))
+
+table(Entidad_Ciudadano_2$Tipo_Votante)
+
+#Se eliminan algunas variables que no se utilizarán en el análisis.
+Entidad_Ciudadano_3 <- Entidad_Ciudadano_2 %>% 
+  select(ID_Ciudadano, ID_Elección, ID_Mesa, ID_Comuna, Comuna, ID_Región, Región, Sexo, Tramo_Etario, Nacionalidad, Afiliación_PP, Tipo_Votante, Tipo_Voto2)
+
+#Paso 4: Guardado de la base de datos, la que luego se cargará de modo independiente para asegurar reproducibilidad de los resultados.
+
+#Sacar "#" al write.csv para guardar la base de datos.
+#write.csv(Entidad_Ciudadano_3, "Entidad Ciudadano (Base Ficticia).csv", row.names = FALSE)
+
+#Se eliminan objetos que no se seguirán utilizando.
+rm(Base_verificación, Resumen_Comuna_Ciudadano,Resumen_Comuna_Votación, Entidad_Ciudadano, Entidad_Ciudadano_2, Entidad_Ciudadano_3)
+```
+
+## **Información del Entorno**
+
+Se guarda un archivo sessions_info.txt para describir de modo detallado el entorno de R con el cual se realizó este análisis.
+
+```{r}
+writeLines(capture.output(sessionInfo()), "session_info.txt")
+```
