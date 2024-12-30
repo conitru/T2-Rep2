@@ -18,6 +18,7 @@ format:
     theme: cosmo #el tema general, hay muchos tipos
     fig-cap-location: bottom #la ubicación del pie de nota de las figuras/gráficos
     self-contained: false
+    df_print: paged
 editor: visual
 
 #    css: styles.css
@@ -1036,33 +1037,42 @@ Entidad_Ciudadano2 <- Entidad_Ciudadano %>%
 ```{r}
 #| label: fig-4
 #| fig-cap: "Distribución por tramo etario según tipo de votante"
+#| echo: true
 
-Entidad_Ciudadano2 %>%
+grafico <- Entidad_Ciudadano2 %>%
   group_by(Tipo_Votante, TEDAD) %>%
   summarise(Conteo = n(), .groups = "drop") %>%
   group_by(Tipo_Votante) %>%
   mutate(Porcentaje = Conteo / sum(Conteo) * 100) %>%  
   mutate(TEDAD = factor(TEDAD, levels = c("Adulto Mayor (60 o más)", "Adulto (30 a 59)", "Joven (18 a 29)"))) %>%  # Establecer el orden de TEDAD
-  ggplot(aes(x = Tipo_Votante, y = Porcentaje, fill = TEDAD)) +
+  ggplot(aes(
+    x = Tipo_Votante,
+    y = Porcentaje,
+    fill = TEDAD,
+    text = paste(
+      "Tipo de Votante:", Tipo_Votante, "<br>",
+      "Tramo Etario:", TEDAD, "<br>",
+      "Proporción:", scales::percent(Porcentaje / 100, accuracy = 0.01)
+    )
+  )) +
   geom_bar(stat = "identity", position = "fill", color = "black") +  
   coord_flip() + 
   labs(
     title = "Distribución de Tramo Etario por Tipo de Votante",
     x = "Tipo de Votante",
-    y = "Proporción",
-    fill = "Tramo Etario"
+    y = "Proporción"
   ) +
-  theme_minimal() +  #
+  theme_minimal() + 
   theme(
-    legend.position = "right", 
-    plot.title = element_text(hjust = 0.5)  # Centrar el título
-  ) +
-  geom_text(
-    aes(label = scales::percent(Porcentaje / 100, accuracy = 0.01)),  
-    position = position_fill(vjust = 0.5), 
-    color = "white" 
+    legend.position = "none",  # Ocultar la leyenda
+    plot.title = element_text(hjust = 0.5)  
   )
+
+plotly::ggplotly(grafico, tooltip = "text")
 ```
+
+
+
 ```{r}
 rm(Entidad_Ciudadano2)
 ```
