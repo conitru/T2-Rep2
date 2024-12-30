@@ -64,7 +64,8 @@ packages <- c("knitr",
             "DiagrammeR",
             "leaflet",
             "geojsonio",
-            "httr"
+            "httr",
+            "gt"
             )
 
 # Apply the function to each package
@@ -560,7 +561,7 @@ Entidad_Mesa <- Entidad_Mesa %>%
 
 #Se ordenan las variables
 Entidad_Mesa <- Entidad_Mesa %>% 
-  select(ID_Mesa, Número_Mesa, Local_Votación, ID_Elección, ID_Comuna, Comuna, ID_Región, Región, Total_Validos,Total_Blancos, Total_Nulos, Total_Votantes)
+  select(ID_Mesa, Número_Mesa, Local_Votación, ID_Elección, ID_Comuna, Comuna, ID_Región, Región, Total_Validos,Total_Blancos, Total_Nulos, Total_Votantes,Tipo_Mesa)
 
 #Se remueven los objetos que ya no se usarán.
 rm(Local_Mesa,Local_Mesa2, Tipología_Mesa, Tipología_Mesa2)
@@ -870,7 +871,7 @@ Participación elecciones con voto obligatorio (P2):<br>
 #| tbl-cap: "Métricas"
 
 tabla %>%
-  kbl(caption = "MÉTRICAS", escape = FALSE) %>%
+  kbl(caption = "", escape = FALSE) %>%
   kable_styling(full_width = FALSE) %>%
   column_spec(2, width = "30em")  # Ajustar ancho de la columna Descripción
 ```
@@ -908,7 +909,7 @@ tabla2 <- data.frame(
 #| tbl-cap: "Dimensiones"
 
 tabla2 %>%
-  kbl(caption = "DIMENSIONES", escape = FALSE) %>%
+  kbl(caption = "", escape = FALSE) %>%
   kable_styling(full_width = FALSE) %>%
   column_spec(2, width = "30em")  # Ajustar ancho de la columna Descripción
 ```
@@ -925,14 +926,15 @@ tabla2 %>%
 
 ## **Análisis preliminar de datos**
 
-En este apartado se presenta el análisis preliminar de los primeros hallazgos del análisis, junto con su representación gráfica e interpretación. Se debe tener en consideración que el análisis se ajusta a los datos ficticios creados producto de la ausencia de información oficial para el análisis.
+En este apartado se presenta el análisis preliminar de los primeros hallazgos del análisis, junto con su representación gráfica e interpretación. Se debe tener en consideración que el análisis se ajusta a los **datos ficticios** creados producto de la ausencia de información oficial para el análisis.
 
 ### **Distribución territorial de los nuevos votantes**
 
 Según lo observado en el mapa de distribución de los nuevos votantes, las comunas que alcanzan un mayor porcentaje de nuevos votantes, los cuales se representan en el mapa con el color amarillo, corresponden a Ollagüe (43,8% de nuevos votantes), Guaitecas (43,76% de nuevos votantes) y O'Higgins (44,4% de nuevos votantes). En tanto, la comuna que muestra un menor porcentaje de nuevos votantes es la comuna de Primavera (37,02% de nuevos votantes). El resto de los resultados según comuna pueden observarse en la @fig-2.
 
 ```{r, results = 'hide'}
-comunas <- st_read("comunas_simplificado.geojson")
+url_mapa <- "https://raw.githubusercontent.com/conitru/T2-Rep2/e8c32e4f5d03b8daea3780ea91af679288e5684d/docs/data2/comunas_simplificado.geojson"
+comunas <- st_read(url_mapa)
 
 comunas <- comunas %>% 
   rename(ID_Comuna=cod_comuna)
@@ -990,7 +992,7 @@ Los datos muestran que los nuevos votantes tienen una distribución similar por 
 #| label: fig-3
 #| fig-cap: "Distribución por sexo según tipo de votante"
 
-Entidad_Ciudadano %>%
+Gráfico_Sexo <- Entidad_Ciudadano %>%
   group_by(Tipo_Votante, Sexo) %>%
   summarise(Conteo = n(), .groups = "drop") %>%
   group_by(Tipo_Votante) %>%
@@ -1001,7 +1003,7 @@ Entidad_Ciudadano %>%
   labs(
     title = "Distribución de Sexo por Tipo de Votante",
     x = "Tipo de Votante",
-    y = "Proporción",
+    y = "Porcentaje",
     fill = "Sexo"
   ) +
   theme_minimal() +  #
@@ -1015,6 +1017,7 @@ Entidad_Ciudadano %>%
     color = "white" 
   )
 
+plotly::ggplotly(Gráfico_Sexo, tooltip = "text")
 ```
 
 ### **Distribución de los tipos de votantes según Tramo Etario**
@@ -1044,7 +1047,7 @@ grafico <- Entidad_Ciudadano2 %>%
   summarise(Conteo = n(), .groups = "drop") %>%
   group_by(Tipo_Votante) %>%
   mutate(Porcentaje = Conteo / sum(Conteo) * 100) %>%  
-  mutate(TEDAD = factor(TEDAD, levels = c("Adulto Mayor (60 o más)", "Adulto (30 a 59)", "Joven (18 a 29)"))) %>%  # Establecer el orden de TEDAD
+  mutate(TEDAD = factor(TEDAD, levels = c("Adulto Mayor (60 o más)", "Adulto (30 a 59)", "Joven (18 a 29)"))) %>%  
   ggplot(aes(
     x = Tipo_Votante,
     y = Porcentaje,
@@ -1060,18 +1063,16 @@ grafico <- Entidad_Ciudadano2 %>%
   labs(
     title = "Distribución de Tramo Etario por Tipo de Votante",
     x = "Tipo de Votante",
-    y = "Proporción"
+    y = "Porcentaje"
   ) +
   theme_minimal() + 
   theme(
-    legend.position = "none",  # Ocultar la leyenda
+    legend.position = "none", 
     plot.title = element_text(hjust = 0.5)  
   )
 
 plotly::ggplotly(grafico, tooltip = "text")
 ```
-
-
 
 ```{r}
 rm(Entidad_Ciudadano2)
@@ -1085,7 +1086,7 @@ En términos de la nacionalidad de los nuevos votantes, el 96,99% son chilenos, 
 #| label: fig-5
 #| fig-cap: "Distribución por nacionalidad según tipo de votante"
 
-Entidad_Ciudadano %>%
+Gráfico_Nacionalidad <- Entidad_Ciudadano %>%
   group_by(Tipo_Votante, Nacionalidad) %>%
   summarise(Conteo = n(), .groups = "drop") %>%
   group_by(Tipo_Votante) %>%
@@ -1096,7 +1097,7 @@ Entidad_Ciudadano %>%
   labs(
     title = "Distribución de Nacionalidad por Tipo de Votante",
     x = "Tipo de Votante",
-    y = "Proporción",
+    y = "Porcentaje",
     fill = "Nacionalidad"
   ) +
   theme_minimal() +  #
@@ -1108,6 +1109,132 @@ Entidad_Ciudadano %>%
     aes(label = scales::percent(Porcentaje / 100, accuracy = 0.01)),  
     position = position_fill(vjust = 0.5), 
     color = "black" 
+  )
+
+plotly::ggplotly(Gráfico_Nacionalidad, tooltip = "text")
+
+```
+
+### **Relación entre Porcentaje de Nuevos Votantes y Pobreza Multidimensional CASEN por Comuna**
+
+Una de las hipotesis que se ha manejado en el debate público refiera a una supuesta mayor proporción de votantes de niveles socioeconómicos o educativos más bajos entre los nuevos votantes. Si bien esta hipotesis no es factible de ser puesta a prueba a nivel de ciudadanos con los datos disponibles, si podemos evaluarla de modo agregado en las comunas, para lo cual se utiliza el porcentaje de pobreza multidimensional de la Encuesta CASEN 2022.
+
+En este sentido, Se aplicó una prueba de correlación de Pearson entre el porcentaje de pobreza multidimensional CASEN y el porcentaje de nuevos votantes en cada comuna, la cual entregó como resultado una correlación 𝑟=0.031, con un valor 𝑝=0.564. Esto indica que no se encontró evidencia estadística significativa de una relación lineal entre ambas variables, por lo que es razonable concluir que no existiría correlación lineal entre el porcentaje de pobreza y el porcentaje de nuevos votantes en las comunas analizadas.
+
+```{r}
+Entidad_Comuna_filtro <- Entidad_Comuna %>%
+  filter(!is.na(Porcentaje_Pobreza_CASEN) & !is.na(Porc_Nuevos_Votantes))
+
+cor_test <- cor.test(Entidad_Comuna_filtro$Porcentaje_Pobreza_CASEN, Entidad_Comuna_filtro$Porc_Nuevos_Votantes, use = "complete.obs")
+
+tabla_cor <- tibble(
+  `Estadístico` = c("Coeficiente de correlación (r)", "Valor p", "N"),
+  `Valor` = c(
+    round(cor_test$estimate, 3),
+    format.pval(cor_test$p.value, digits = 3),
+    cor_test$parameter + 2
+  )
+)
+```
+
+```{r}
+#| label: tbl-tabla8
+#| tbl-cap: "Correlación entre Pobreza Multidimensional y Nuevos Votantes"
+#| 
+tabla_cor %>%
+  gt() %>%
+  tab_header(
+    title = "Correlación de Pearson entre Variables",
+    subtitle = "Análisis entre Pobreza Multidimensional y Nuevos Votantes"
+  ) %>%
+  fmt_number(columns = "Valor", decimals = 3) %>%
+  cols_label(Estadístico = "Descripción", Valor = "Resultado") %>%
+  tab_style(
+    style = list(cell_text(weight = "bold")),
+    locations = cells_title(groups = c("title", "subtitle"))
+  )
+```
+
+Las conclusiones anteriores se ven reforzadas al analizar el gráfico de dispersión entre ambas variables, en donde no se observa una tendencia clara en la distribución de la nube de puntos.
+
+```{r}
+#| label: fig-6
+#| fig-cap: "Gráfico de dispersión entre Pobreza Multidimensional y Nuevos Votantes"
+#| 
+ggplot(data = na.omit(Entidad_Comuna_filtro), aes(x = (Porcentaje_Pobreza_CASEN*100), y = Porc_Nuevos_Votantes)) +
+   geom_point(position = position_jitter(width = 0.15), color = "purple", shape = 16) + 
+   geom_smooth(method = "lm", formula = y ~ x, color = "darkgreen", se = TRUE) +
+   labs(
+      x = "Porcentaje de personas en situación de pobreza Multidimensional 2022",
+      y = "Porcentaje de Nuevos Votantes"
+   ) +
+   theme_classic() +
+   theme(axis.line.x = element_line(color = "lightgray", size = 0.05),
+         axis.line.y = element_line(color = "lightgray", size = 0.05),
+         panel.grid.major.y = element_line(color = "lightgray", size = 0.05),
+         axis.text.y = element_text(color = "black"),
+         axis.text.x = element_text(color = "black"),
+         axis.title.x = element_text(color = "black"),
+         axis.title.y = element_text(color = "black"))
+```
+
+### **Relación entre Tipos de Votantes y Resultado de votación**
+
+Una última dimensión a analizar en la descripción de los nuevos votantes dice relación con su comportamiento de voto en términos de votos válidos e invalidos, ya que una de las hipotesis que se manejan en la opinión pública indica que los nuevos votantes tendrían una mayor probabilidad de votar nulo o blanco. Al respecto, los datos se analizaron en la unidad de medida más pequeña posible de ser analizada, la mesa de votación, evaluando de este modo como se distribuyen los votos validos e invalidos según la tipología de mesa creada (Mesa de nuevos votantes versus otro tipo de mesa).
+
+En términos de resultados, no se observan grandes diferencias entre las mesas de nuevos votantes y las otras mesas, las mesas de nuevos votantes registran un 82,31% de votos válidos, 10,30% de votos nulos y 7,39% de votos blancos.
+
+```{r}
+Tabla_Mesa <- Entidad_Mesa %>% 
+  group_by(Tipo_Mesa) %>% 
+  summarise(
+    Validos=sum(Total_Validos),
+    Nulos=sum(Total_Nulos),
+    Blancos=sum(Total_Blancos),
+    Total=sum(Total_Votantes)
+  )
+
+Tabla_Mesa <- Tabla_Mesa %>% 
+  mutate(Porc_Validos=((Validos/Total)*100),
+         Porc_Blancos=((Blancos/Total)*100),
+         Porc_Nulos=((Nulos/Total)*100))
+
+Tabla_Mesa2 <- Tabla_Mesa %>% 
+  select(Tipo_Mesa,Porc_Validos,Porc_Blancos,Porc_Nulos)
+
+
+Tabla_Mesa3 <- reshape2::melt(Tabla_Mesa2, id.vars = "Tipo_Mesa", 
+                               variable.name = "Categoria", 
+                               value.name = "Porcentaje")
+```
+
+```{r}
+#| label: fig-7
+#| fig-cap: "Distribución de Resultados de Votación por tipo de mesa"
+
+ggplot(Tabla_Mesa3, aes(x = Tipo_Mesa, y = Porcentaje, fill = Categoria)) +
+  geom_bar(stat = "identity", position = "fill") +
+  geom_text(aes(label = sprintf("%.2f%%", Porcentaje)),
+            position = position_fill(vjust = 0.5), size = 3, color = "white") + # Etiquetas centradas
+  coord_flip() +
+  labs(
+    title = "Distribución de Votos por Tipo de Mesa",
+    x = "Tipo de Mesa",
+    y = "Porcentaje",
+    fill = NULL # Elimina el título de la leyenda
+  ) +
+  scale_fill_manual(
+    values = c("Porc_Validos" = "steelblue", 
+               "Porc_Blancos" = "orange", 
+               "Porc_Nulos" = "red"),
+    labels = c("Porc_Validos" = "Porcentaje votos válidos",
+               "Porc_Blancos" = "Porcentaje de votos blancos",
+               "Porc_Nulos" = "Porcentaje de votos nulos")
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", # Mueve la leyenda debajo del gráfico
+    legend.text = element_text(size = 9) # Tamaño del texto de la leyenda
   )
 
 ```
