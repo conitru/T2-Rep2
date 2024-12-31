@@ -64,8 +64,7 @@ packages <- c("knitr",
             "DiagrammeR",
             "leaflet",
             "geojsonio",
-            "httr",
-            "gt"
+            "httr"
             )
 
 # Apply the function to each package
@@ -1140,19 +1139,21 @@ tabla_cor <- tibble(
 ```{r}
 #| label: tbl-tabla8
 #| tbl-cap: "Correlación entre Pobreza Multidimensional y Nuevos Votantes"
-#| 
+
 tabla_cor %>%
-  gt() %>%
-  tab_header(
-    title = "Correlación de Pearson entre Variables",
-    subtitle = "Análisis entre Pobreza Multidimensional y Nuevos Votantes"
+  kable(
+    format = "html",
+    caption = "",
+    col.names = c("Descripción", "Resultado"),
+    digits = c(3, 3)  # Formatear los decimales para las dos columnas (por ejemplo, 3 decimales)
   ) %>%
-  fmt_number(columns = "Valor", decimals = 3) %>%
-  cols_label(Estadístico = "Descripción", Valor = "Resultado") %>%
-  tab_style(
-    style = list(cell_text(weight = "bold")),
-    locations = cells_title(groups = c("title", "subtitle"))
-  )
+  kable_styling(
+    bootstrap_options = c("striped", "hover"),
+    font_size = 12,
+    full_width = F
+  ) %>%
+  column_spec(1, bold = TRUE) %>%
+  column_spec(2, bold = TRUE)
 ```
 
 Las conclusiones anteriores se ven reforzadas al analizar el gráfico de dispersión entre ambas variables, en donde no se observa una tendencia clara en la distribución de la nube de puntos.

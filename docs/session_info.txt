@@ -17,14 +17,14 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] gt_0.11.1         httr_1.4.7        geojsonio_0.11.3  leaflet_2.2.2    
- [5] DiagrammeR_1.0.11 flextable_0.9.7   openxlsx_4.2.7.1  writexl_1.5.1    
- [9] readxl_1.4.3      scales_1.3.0      haven_2.5.4       sf_1.0-19        
-[13] plotly_4.10.4     lubridate_1.9.3   forcats_1.0.0     stringr_1.5.1    
-[17] dplyr_1.1.4       purrr_1.0.2       readr_2.1.5       tidyr_1.3.1      
-[21] tibble_3.2.1      ggplot2_3.5.1     tidyverse_2.0.0   latex2exp_0.9.6  
-[25] gapminder_1.0.0   reticulate_1.40.0 table1_1.4.3      DT_0.33          
-[29] kableExtra_1.4.0  knitr_1.49       
+ [1] httr_1.4.7        geojsonio_0.11.3  leaflet_2.2.2     DiagrammeR_1.0.11
+ [5] flextable_0.9.7   openxlsx_4.2.7.1  writexl_1.5.1     readxl_1.4.3     
+ [9] scales_1.3.0      haven_2.5.4       sf_1.0-19         plotly_4.10.4    
+[13] lubridate_1.9.3   forcats_1.0.0     stringr_1.5.1     dplyr_1.1.4      
+[17] purrr_1.0.2       readr_2.1.5       tidyr_1.3.1       tibble_3.2.1     
+[21] ggplot2_3.5.1     tidyverse_2.0.0   latex2exp_0.9.6   gapminder_1.0.0  
+[25] reticulate_1.40.0 table1_1.4.3      DT_0.33           kableExtra_1.4.0 
+[29] knitr_1.49       
 
 loaded via a namespace (and not attached):
  [1] DBI_1.2.3               rlang_1.1.4             magrittr_2.0.3         
